@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#120b36">
 <meta name="format-detection" content="telephone=no">
-<title>Arabian Night – A Magical Journey</title>
+<title>Arabian Night</title>
+<meta name="theme-color" content="#1f1148">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Arabian Night">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@400;600;700;800&display=swap" media="print" onload="this.media='all'">
@@ -18,7 +22,11 @@
   --disp:'Cinzel Decorative','Amiri',Georgia,serif; --ar:'Amiri',Georgia,serif; --body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-text-size-adjust:100%;background:#1f1148}
+html{-webkit-text-size-adjust:100%;background:#1f1148;scrollbar-color:#7a4fd0 #1f1148;scrollbar-width:thin}
+::-webkit-scrollbar{width:10px;height:10px;background:#1f1148}
+::-webkit-scrollbar-track{background:#1f1148}
+::-webkit-scrollbar-thumb{background:linear-gradient(#8a5fe0,#5a30b0);border-radius:10px;border:2px solid #1f1148}
+::-webkit-scrollbar-thumb:hover{background:#9b72f0}
 body{font-family:var(--body);color:var(--cream);background:#1f1148;min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.10;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><g fill='none' stroke='%23f2c14e' stroke-width='1'><rect x='20' y='20' width='40' height='40'/><rect x='20' y='20' width='40' height='40' transform='rotate(45 40 40)'/><circle cx='40' cy='40' r='9'/></g></svg>");
@@ -150,10 +158,21 @@ input::placeholder{color:rgba(255,246,221,.4)}
 .qrbox{display:inline-block;background:#fff6dd;padding:14px;border-radius:18px;border:4px solid var(--gold);margin:8px 0 10px;box-shadow:0 0 30px rgba(242,193,78,.4)}
 .qrbox img,.qrbox canvas{display:block}
 .qrurl{font-size:.7rem;opacity:.6;word-break:break-all}
+.qrcard h2{font-size:1.5rem;letter-spacing:.08em;margin-bottom:4px}
+.qrcard .qrsub{font-family:var(--body);font-size:1.05rem;line-height:1.5;opacity:.95;margin:0 0 10px}
+.qrcard .qrsub b{color:var(--gold)}
+.qrbox svg{width:min(66vw,280px)!important;height:auto!important}
+.qrfoot{margin-top:6px;font-size:.8rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);opacity:.85}
 @media print{
   #bg canvas,.noprint{display:none!important}
   body{background:#120b36!important}
-  #app{padding-top:20px}
+  #app{padding:0 0 0!important;max-width:560px!important}
+  html,body{min-height:0!important;height:auto!important}
+  .lanterns,#moon,.mosque,.skyline{display:none!important}
+  header,.hero{margin-top:0!important;padding-top:0!important}
+  .qrbox svg{width:8cm!important}
+  .qrcard h2{font-size:2rem}.qrcard .qrsub{font-size:1.3rem}
+  @page{size:A4;margin:12mm}
 }
 
 /* dashboard */
@@ -218,6 +237,21 @@ td select{padding:6px 8px;font-size:.8rem;border-radius:10px}
 .podium>div{border:1px solid var(--line);border-radius:14px 14px 0 0;padding:10px 6px;background:rgba(8,5,30,.6);font-size:.82rem}
 .podium .v{font-family:var(--disp);color:var(--gold);font-size:1.2rem}
 .hide{display:none!important}
+@media (max-width:700px){
+body.fit #app{padding:44px 14px 18px!important}
+body.fit .lanterns,body.fit #moon,body.fit .foot,body.fit .hero .info,body.fit .hero .oline,body.fit .noprint.nav{display:none!important}
+body.fit .hero{margin:0 0 10px!important;padding:0!important}
+body.fit .hero .title{font-size:2.15rem!important;margin:0!important;line-height:1.05}
+body.fit .hero .sub{margin:2px 0 6px!important;font-size:.72rem!important}
+body.fit .hero .org{margin:0!important;padding:0!important}
+body.fit .hero .org1{font-size:.8rem!important;margin:0!important}
+body.fit .hero .org2{font-size:.8rem!important;margin:0!important}
+body.fit .card.arch{border-radius:60px 60px 22px 22px!important;padding:26px 18px 18px!important;margin:0!important}
+body.fit .card h2{font-size:1.25rem!important;margin:0 0 6px!important}
+body.fit label{margin:8px 0 4px!important}
+body.fit input,body.fit select{padding:11px 14px!important}
+body.fit .btn.block{margin-top:12px!important;padding:12px!important}
+}
 </style>
 </head>
 <body>
@@ -3010,7 +3044,7 @@ function hero() {
 }
 function demoBanner() { if (DEMO && !$('.demo')) { const d = document.createElement('div'); d.className = 'demo noprint'; d.textContent = 'MOD DEMO — data disimpan dalam pelayar ini sahaja (belum disambung ke Google Sheet)'; document.body.appendChild(d); } }
 function navLinks(cur) {
-  const L = [['dashboard', 'Dashboard'], ['cabutan', 'Cabutan Bertuah'], ['bestdress', 'Best Dress'], ['poster', 'Poster QR'], ['daftar', 'Borang Daftar'], ['undi', 'Borang Undi']];
+  const L = [['dashboard', 'Dashboard'], ['cabutan', 'Cabutan Bertuah'], ['bestdress', 'Best Dress'], ['poster', 'QR Daftar'], ['posterundi', 'QR Best Dress'], ['daftar', 'Borang Daftar'], ['undi', 'Borang Undi']];
   return `<div class="nav noprint">${L.map(l => `<a class="btn ghost sm" href="${pageUrl(l[0])}" ${l[0] === cur ? 'style="background:rgba(242,193,78,.2)"' : ''}>${l[1]}</a>`).join('')}</div>`;
 }
 function unitOptions() { return UNITS.map(u => `<option>${esc(u)}</option>`).join(''); }
@@ -3037,7 +3071,7 @@ function fmtTime(iso) { try { return new Date(iso).toLocaleTimeString('ms-MY', {
 
 /* ============ HALAMAN: DAFTAR ============ */
 async function pgDaftar() {
-  document.body.classList.add('split-page');
+  document.body.classList.add('split-page', 'fit');
   buildBg(false);
   // Halaman & borang dipaparkan SERTA-MERTA; maklumat kuota menyusul selepas pelayan menjawab.
   app.innerHTML = `<div class="split">${hero()}<div class="col"><section class="card arch" id="card"></section><div class="foot"><div class="oline"><i></i><b>✦</b><i></i></div><div class="f1">Kelab Bahagian Pengurusan</div><div class="f2">· SPP ·</div></div></div></div>`;
@@ -3091,7 +3125,7 @@ async function pgDaftar() {
 
 /* ============ HALAMAN: UNDI ============ */
 async function pgUndi() {
-  buildBg(false);
+  document.body.classList.add('fit'); buildBg(false);
   app.innerHTML = `${hero()}<section class="card" id="card"><div class="center small">Memuatkan…</div></section>`;
   const [vi] = await Promise.all([api('voteInfo')]);
   let reg = LS.get('reg', null);
@@ -3122,18 +3156,17 @@ async function pgUndi() {
 }
 
 /* ============ HALAMAN: POSTER QR ============ */
-async function pgPoster() {
+async function pgPoster(kind) {
   document.body.classList.add('wide'); buildBg(false);
-  const isV = new URLSearchParams(location.search).get('jenis') === 'undi';
-  const T = isV ? pageUrl('undi') : pageUrl('daftar');
+  const isV = kind === 'undi';
+  const T = pageUrl(isV ? 'undi' : 'daftar');
   const card = isV
-    ? `<h2>Undi Best Dress</h2><p>Imbas untuk mengundi<br><b>Raja Malam</b> &amp; <b>Permaisuri Malam</b></p>`
-    : `<h2>Daftar Kehadiran</h2><p>Imbas &amp; masukkan <b>nama</b> dan <b>unit</b><br>untuk terus dapat <b>No. Cabutan Bertuah</b></p>`;
-  const sw = (k, t) => `<a class="btn ${((k === 'undi') === isV) ? '' : 'ghost'}" href="?page=poster${k === 'undi' ? '&jenis=undi' : ''}">${t}</a>`;
-  app.innerHTML = `${hero()}<div class="noprint center" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:14px">${sw('daftar', 'QR Pendaftaran')}${sw('undi', 'QR Best Dress')}</div>
-   <div style="max-width:420px;margin:0 auto"><section class="card qrcard">${card}<div class="qrbox" id="q1"></div></section></div>
-  <div class="center noprint" style="margin-top:20px"><button class="btn" onclick="window.print()">🖨 Cetak QR Ini</button></div>${navLinks('poster')}`;
-  const mk = (id, t) => { try { if (!window.qrcode) (0, eval)($('#qrlib').textContent); const q = qrcode(0, 'M'); q.addData(t); q.make(); $(id).innerHTML = q.createSvgTag({ cellSize: 6, margin: 0, scalable: true }); const sv = $(id + ' svg'); sv.setAttribute('width', 240); sv.setAttribute('height', 240); sv.style.display = 'block'; sv.querySelectorAll('rect,path').forEach(n => { if (n.getAttribute('fill') === '#000000') n.setAttribute('fill', '#1a0f3d'); if (n.getAttribute('fill') === '#ffffff') n.setAttribute('fill', '#fff6dd'); }); } catch (e) { $(id).innerHTML = '<div class="small" style="color:#2a1659;width:240px">Gagal menjana QR: ' + esc(e.message) + '</div>'; } };
+    ? `<h2>Undi Best Dress</h2><p class="qrsub">Imbas untuk mengundi<br><b>Raja Malam</b> &amp; <b>Permaisuri Malam</b></p>`
+    : `<h2>Daftar Kehadiran</h2><p class="qrsub">Imbas untuk dapat<br><b>No. Cabutan Bertuah</b></p>`;
+  app.innerHTML = `${hero()}
+   <div style="max-width:440px;margin:0 auto"><section class="card qrcard fadein">${card}<div class="qrbox" id="q1"></div><div class="qrfoot">${isV ? 'Terima kasih' : 'Selamat datang'}</div></section></div>
+  <div class="center noprint" style="margin-top:20px"><button class="btn" onclick="window.print()">🖨 Cetak</button></div>${navLinks(isV ? 'posterundi' : 'poster')}`;
+  const mk = (id, t) => { try { if (!window.qrcode) (0, eval)($('#qrlib').textContent); const q = qrcode(0, 'M'); q.addData(t); q.make(); $(id).innerHTML = q.createSvgTag({ cellSize: 6, margin: 0, scalable: true }); const sv = $(id + ' svg'); sv.removeAttribute('width'); sv.removeAttribute('height'); sv.style.display = 'block'; sv.querySelectorAll('rect,path').forEach(n => { if (n.getAttribute('fill') === '#000000') n.setAttribute('fill', '#1a0f3d'); if (n.getAttribute('fill') === '#ffffff') n.setAttribute('fill', '#fff6dd'); }); } catch (e) { $(id).innerHTML = '<div class="small" style="color:#2a1659;width:240px">Gagal menjana QR: ' + esc(e.message) + '</div>'; } };
   mk('#q1', T);
   if (location.protocol === 'file:') app.insertAdjacentHTML('beforeend', '<div class="msg err">Anda membuka fail secara tempatan. Muat naik ke GitHub Pages dahulu supaya QR menunjuk ke alamat web sebenar.</div>');
 }
@@ -3328,7 +3361,7 @@ async function pgBest() {
 
 /* ============ ROUTER ============ */
 const PAGE = (new URLSearchParams(location.search).get('page') || 'daftar').toLowerCase();
-const ROUTES = { daftar: pgDaftar, undi: pgUndi, poster: pgPoster, dashboard: pgDashboard, admin: pgDashboard, cabutan: pgCabutan, draw: pgCabutan, bestdress: pgBest };
+const ROUTES = { daftar: pgDaftar, undi: pgUndi, poster: () => pgPoster('daftar'), posterundi: () => pgPoster('undi'), dashboard: pgDashboard, admin: pgDashboard, cabutan: pgCabutan, draw: pgCabutan, bestdress: pgBest };
 demoBanner();
 (ROUTES[PAGE] || pgDaftar)().catch(e => { console.error(e); app.innerHTML = `<section class="card"><h2>Ralat</h2><p>${esc(e.message || e)}</p></section>`; });
 </script>
