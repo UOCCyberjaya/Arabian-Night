@@ -13,7 +13,7 @@
 <style>
 :root{
   --night:#06041a; --indigo:#120b36; --purple:#2a1659; --plum:#43206f;
-  --gold:#f2c14e; --gold2:#ffe9a8; --gold3:#b8862b; --teal:#2ec4b6; --rose:#e0457b; --cream:#fff6dd;
+  --gold:#f2c14e; --gold2:#ffe9a8; --gold3:#b8862b; --teal:#c77dff; --rose:#e0457b; --cream:#fff6dd;
   --glass:rgba(48,26,98,.72); --line:rgba(242,193,78,.45);
   --disp:'Cinzel Decorative','Amiri',Georgia,serif; --ar:'Amiri',Georgia,serif; --body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
 }
@@ -51,9 +51,9 @@ body.stage #app{max-width:none;padding:0}
 .title{font-family:var(--disp);font-weight:900;font-size:clamp(2.1rem,9.5vw,3.4rem);line-height:1.05;letter-spacing:2px;text-transform:uppercase;isolation:isolate}
 .sub{font-family:var(--disp);letter-spacing:5px;font-size:clamp(.75rem,3.3vw,1rem);margin-top:8px;text-transform:uppercase;isolation:isolate}
 /* warna berubah-ubah + glow */
-.gl{position:relative;display:inline-block;background:linear-gradient(90deg,#fff3c4 0%,#f2c14e 20%,#ff7eb3 40%,#a45cff 60%,#2ec4b6 80%,#fff3c4 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:hue 8s linear infinite}
+.gl{position:relative;display:inline-block;background:linear-gradient(90deg,#fff3c4 0%,#f2c14e 20%,#ff7eb3 40%,#a45cff 60%,#e0aaff 80%,#fff3c4 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:hue 8s linear infinite}
 .gl::before{content:attr(data-text);position:absolute;left:0;top:0;width:100%;z-index:-1;background:inherit;background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;filter:blur(11px);will-change:opacity;animation:hue 8s linear infinite,pulse 2.4s ease-in-out infinite alternate}
-.sub .gl{background-image:linear-gradient(90deg,#2ec4b6 0%,#fff3c4 20%,#f2c14e 40%,#ff7eb3 60%,#a45cff 80%,#2ec4b6 100%);animation-duration:6s;animation-direction:reverse}
+.sub .gl{background-image:linear-gradient(90deg,#e0aaff 0%,#fff3c4 20%,#f2c14e 40%,#ff7eb3 60%,#a45cff 80%,#e0aaff 100%);animation-duration:6s;animation-direction:reverse}
 .sub .gl::before{background-image:inherit;filter:blur(7px);animation:hue 6s linear infinite reverse,pulse 2s ease-in-out infinite alternate}
 @keyframes hue{to{background-position:200% 50%}}
 @keyframes pulse{from{opacity:.3}to{opacity:1}}
@@ -107,7 +107,7 @@ input::placeholder{color:rgba(255,246,221,.4)}
 .btn.red{background:linear-gradient(180deg,#ff8aa8,#e0457b);color:#fff}
 .msg{margin-top:14px;padding:11px 14px;border-radius:12px;font-size:.9rem;text-align:center}
 .msg.err{background:rgba(224,69,123,.2);border:1px solid rgba(224,69,123,.6)}
-.msg.ok{background:rgba(46,196,182,.18);border:1px solid rgba(46,196,182,.6)}
+.msg.ok{background:rgba(199,125,255,.18);border:1px solid rgba(199,125,255,.6)}
 .small{font-size:.8rem;opacity:.75}
 .center{text-align:center}
 .bar{height:8px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden;margin-top:6px}
@@ -195,7 +195,7 @@ td select{padding:6px 8px;font-size:.8rem;border-radius:10px}
 @keyframes land{0%{transform:scale(1.5)}60%{transform:scale(.95)}100%{transform:scale(1)}}
 .winner{min-height:100px;opacity:0;transform:translateY(24px);transition:.6s}
 .winner.show{opacity:1;transform:none}
-.winner .wn{font-family:var(--disp);font-weight:700;font-size:clamp(1.3rem,4.4vw,2.8rem);color:#fff;text-shadow:0 0 22px rgba(46,196,182,.9)}
+.winner .wn{font-family:var(--disp);font-weight:700;font-size:clamp(1.3rem,4.4vw,2.8rem);color:#fff;text-shadow:0 0 22px rgba(199,125,255,.9)}
 .winner .wu{font-size:clamp(.95rem,2.2vw,1.4rem);color:var(--teal);margin-top:4px}
 .winner .wp{font-family:var(--ar);font-size:clamp(1.1rem,2.6vw,1.7rem);color:var(--gold2);margin-top:6px}
 .ctrl{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
@@ -221,7 +221,7 @@ td select{padding:6px 8px;font-size:.8rem;border-radius:10px}
 <body>
 <div id="bg">
   <canvas id="stars"></canvas>
-  <svg class="carpet" id="carpet" viewBox="0 0 130 60"><path d="M6 34 Q35 20 65 34 T124 30 L118 44 Q90 36 62 46 T10 48z" fill="#e0457b"/><path d="M14 36 Q40 26 64 37 T116 33" stroke="#ffe9a8" stroke-width="2" fill="none"/><g stroke="#ffe9a8" stroke-width="2"><path d="M6 34l-6 4M10 48l-6 6M124 30l6 3M118 44l7 5"/></g><circle cx="64" cy="22" r="7" fill="#2ec4b6"/><path d="M57 34q7-14 14 0z" fill="#f2c14e"/></svg>
+  <svg class="carpet" id="carpet" viewBox="0 0 130 60"><path d="M6 34 Q35 20 65 34 T124 30 L118 44 Q90 36 62 46 T10 48z" fill="#e0457b"/><path d="M14 36 Q40 26 64 37 T116 33" stroke="#ffe9a8" stroke-width="2" fill="none"/><g stroke="#ffe9a8" stroke-width="2"><path d="M6 34l-6 4M10 48l-6 6M124 30l6 3M118 44l7 5"/></g><circle cx="64" cy="22" r="7" fill="#c77dff"/><path d="M57 34q7-14 14 0z" fill="#f2c14e"/></svg>
   <svg id="skyline" viewBox="0 0 1200 230" preserveAspectRatio="xMidYMax slice"><defs><linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a1d73"/><stop offset="1" stop-color="#271352"/></linearGradient></defs><g fill="url(#sk)" id="sk-shapes"></g><g id="sk-win" fill="#f2c14e"></g></svg>
 </div>
 <div class="lanterns" id="lanterns"></div>
@@ -2842,7 +2842,7 @@ async function api(action, data) {
 /* ============ LATAR BELAKANG ============ */
 let _bgW = 0, _bgInit = false;
 function buildBg(stage) {
-  const cols = ['#e0457b', '#2ec4b6', '#f2c14e', '#a45cff', '#ff8a3d'];
+  const cols = ['#e0457b', '#c77dff', '#f2c14e', '#a45cff', '#ff8a3d'];
   const host = $('#lanterns');
   const n = stage ? 5 : 4;
   host.innerHTML = '';
@@ -2890,7 +2890,7 @@ function buildBg(stage) {
 const FX = (() => {
   let cv, ctx, parts = [], run = false;
   function init() { if (cv) return; cv = document.createElement('canvas'); cv.id = 'fx'; document.body.appendChild(cv); ctx = cv.getContext('2d'); const rs = () => { cv.width = innerWidth; cv.height = innerHeight; }; rs(); addEventListener('resize', rs); }
-  const cols = ['#f2c14e', '#ffe9a8', '#2ec4b6', '#e0457b', '#a45cff', '#fff'];
+  const cols = ['#f2c14e', '#ffe9a8', '#c77dff', '#e0457b', '#a45cff', '#fff'];
   function burst(x, y, n, power) {
     init();
     for (let i = 0; i < n; i++) { const a = Math.random() * 6.283, v = (Math.random() * .6 + .4) * power; parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - power * .35, g: .18, life: 90 + Math.random() * 60, c: cols[i % cols.length], w: 5 + Math.random() * 6, h: 3 + Math.random() * 5, r: Math.random() * 6, vr: (Math.random() - .5) * .4 }); }
