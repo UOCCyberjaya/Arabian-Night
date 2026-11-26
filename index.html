@@ -2531,8 +2531,17 @@ var qrcode = function() {
 /* ============ TETAPAN ============ */
 // Selepas deploy Apps Script, tampal URL Web App (berakhir /exec) di sini.
 // Jika dibiarkan kosong, sistem berjalan dalam MOD DEMO (data disimpan dalam pelayar sahaja).
-const API_URL = "";
+const API_URL = "https://script.google.com/macros/s/AKfycbzmvEx5yTZLuymnyZdnI0WP1HI001QbAyR5qBv3VfIS6cb4lWJp4etuZSSZhE7T5FFp/exec";
 const DEMO_PIN = "1234";
+// Fail bunyi (letak dalam folder yang sama dengan index.html; nama fail sensitif huruf besar/kecil).
+// Boleh ditukar di sini. Jika fail tiada, bunyi automatik digunakan.
+const SFX_FILES = {
+  menang: 'menang.mp3',   // setiap pemenang biasa (cabutan No. 59 hingga 4)
+  p3: 'Award3.mp3',       // Podium No. 3
+  p2: 'award2.mp3',       // Podium No. 2
+  p1: 'first.mp3',        // Podium No. 1
+  grand: 'grand.mp3'      // pembukaan Hadiah Utama (bermula semasa cabut No. 3)
+};
 
 /* ===== ENJIN DIKONGSI (Apps Script + mod demo) ===== */
 var UNITS = ['Pejabat SUB (U)', 'Unit Sumber Manusia', 'Unit Pentadbiran', 'Unit Kewangan', 'Unit Perolehan', 'Unit Latihan', 'Unit Aset', 'Unit Pendaftaran', 'Unit Komunikasi Korporat'];
@@ -2933,6 +2942,27 @@ const Snd = (() => {
     unlock() { init(); },
     tick() { if (!ctx) return; const t = ctx.currentTime, o = ctx.createOscillator(), a = ctx.createGain(); o.type = 'square'; o.frequency.value = 760 + Math.random() * 160; a.gain.setValueAtTime(.05, t); a.gain.exponentialRampToValueAtTime(.0001, t + .05); o.connect(a); a.connect(master); o.start(t); o.stop(t + .06); },
     fanfare(big) { init(); const t = ctx.currentTime, seq = big ? [4, 6, 7, 9, 11, 13, 14, 14] : [4, 7, 9, 11, 14]; seq.forEach((n, i) => pluck(t + i * .13, HIJ[n] * 1, .22)); [0, 2, 4].forEach(k => pluck(t + seq.length * .13, HIJ[7 + k], .2)); },
+    sfx(key, big) {
+      init();
+      try {
+        if (!this._c) this._c = {};
+        if (this._cur) { this._cur.pause(); this._cur = null; }
+        const file = SFX_FILES[key]; if (!file) return this.fanfare(big);
+        const a = this._c[key] || (this._c[key] = new Audio(file));
+        a.currentTime = 0; this._cur = a;
+        const pr = a.play();
+        if (pr && pr.catch) pr.catch(() => { if (this._cur === a) this._cur = null; this.fanfare(big); });
+      } catch (e) { this.fanfare(big); }
+    },
+    stopSfx() { try { if (this._cur) { this._cur.pause(); this._cur = null; } } catch (e) { } },
+    preload() {
+      this._c = this._c || {};
+      Object.keys(SFX_FILES).forEach(k => { if (!this._c[k]) { const a = new Audio(); a.preload = 'auto'; a.src = SFX_FILES[k]; this._c[k] = a; } });
+    },
+    unlockSfx() {
+      if (this._unl) return; this._unl = true;
+      Object.keys(this._c || {}).forEach(k => { const a = this._c[k]; a.muted = true; const p = a.play(); if (p && p.then) p.then(() => { a.pause(); a.currentTime = 0; a.muted = false; }).catch(() => { a.muted = false; }); });
+    },
     setFile(f) { init(); if (file) { file.pause(); file = null; } if (f) { file = new Audio(URL.createObjectURL(f)); file.loop = true; if (musicOn) file.play().catch(() => { }); } },
     toggle() {
       init(); musicOn = !musicOn;
@@ -3155,7 +3185,7 @@ async function pgCabutan() {
       <div class="winner" id="winner"></div><div class="note" id="note"></div>
       <div class="ctrl"><button class="btn go" id="go">Cabut!</button></div><div class="ctrl noprint" id="after"></div><div id="warn" class="small"></div></div>
   </div><aside class="drawer" id="drawer"></aside>`;
-  const reel = $('#reel');
+  const reel = $('#reel'); Snd.preload();
   function pad(n) { return String(n).padStart(2, '0'); }
   function paint(keep) {
     const n = S.next, ses = n ? sessOf(n) : null;
@@ -3202,7 +3232,9 @@ async function pgCabutan() {
   $('#bf').onclick = () => { const e = document.documentElement; if (document.fullscreenElement) document.exitFullscreen(); else if (e.requestFullscreen) e.requestFullscreen().catch(() => { }); };
 
   async function draw() {
-    if (busy || !S.next) return; busy = true; Snd.unlock(); paint();
+    if (busy || !S.next) return; busy = true; Snd.unlock(); Snd.unlockSfx(); paint();
+    const sfxKey = n => n === 3 ? 'p3' : n === 2 ? 'p2' : n === 1 ? 'p1' : 'menang';
+    if (S.next === 3) Snd.sfx('grand', true);
     $('#go').disabled = true; $('#after').innerHTML = ''; $('#note').textContent = '';
     const w = $('#winner'); w.classList.remove('show');
     reel.classList.remove('land'); reel.classList.add('spin');
@@ -3216,7 +3248,7 @@ async function pgCabutan() {
     const delays = [90, 110, 135, 165, 200, 250, 310, 380, 470]; let last = -1;
     for (const dl of delays) { let x; do { x = rnd(); } while (x === last && pool.length > 1); last = x; reel.textContent = pad(x); Snd.tick(); await sleep(dl); }
     reel.textContent = pad(res.winner.no); reel.classList.remove('spin'); reel.classList.add('land');
-    const big = res.winner.cabutan <= 3; Snd.fanfare(big);
+    const big = res.winner.cabutan <= 3; Snd.sfx(sfxKey(res.winner.cabutan), big);
     w.innerHTML = `<div class="wn">${esc(res.winner.nama)}</div><div class="wu">${esc(res.winner.unit)}</div>${prizeOf(res.winner.cabutan) ? `<div class="wp">🎁 ${esc(prizeOf(res.winner.cabutan))}</div>` : ''}`;
     w.classList.add('show'); big ? FX.big() : FX.burst(innerWidth / 2, innerHeight * .4, 140, 11);
     await reload();
