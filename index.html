@@ -67,6 +67,8 @@ body.stage #app{max-width:none;padding:0}
 .foot{margin:26px auto 0;max-width:360px;text-align:center}
 .foot .f1{font-family:var(--disp);font-weight:700;font-size:clamp(.85rem,3.6vw,1.05rem);letter-spacing:2.5px;text-transform:uppercase;margin-top:10px;background:linear-gradient(180deg,#fff,#ffe9a8 55%,#f2c14e);-webkit-background-clip:text;background-clip:text;color:transparent}
 .foot .f2{font-family:var(--ar);font-size:1.15rem;letter-spacing:5px;color:var(--teal);margin-top:2px}
+@keyframes fadeIn{from{opacity:0;transform:translate3d(0,8px,0)}to{opacity:1;transform:none}}
+#app{animation:fadeIn .45s ease both}.fadein{animation:fadeIn .35s ease both}
 /* maklumat majlis */
 .org{margin:14px auto 0;max-width:460px}
 .oline{display:flex;align-items:center;gap:10px;color:var(--gold)}
@@ -2657,6 +2659,10 @@ function handle(store, req, env) {
   switch (a) {
     case 'ping': return { ok: true };
 
+    case 'auth': return { ok: true };
+
+    case 'flush': return { ok: true };
+
     case 'info':
       return { ok: true, total: cfg.total, registered: store.peserta.length, voteOpen: !!cfg.voteOpen, units: UNITS };
 
@@ -2815,6 +2821,11 @@ function demoCall(req) {
   return res;
 }
 async function api(action, data) {
+  const r = await _api(action, data);
+  if (r && r.code === 'pin' && action !== 'auth') { SS.del('pin'); SS.del('dash'); SS.del('drawS'); SS.del('bestR'); location.reload(); }
+  return r;
+}
+async function _api(action, data) {
   const req = Object.assign({ action, pin: SS.get('pin') || '' }, data || {});
   const READ = ['info', 'voteInfo', 'adminList', 'drawState', 'results', 'ping'];
   const RETRY = READ.concat(['register', 'vote', 'adminAdd', 'setConfig', 'setCalon']);
@@ -3005,20 +3016,22 @@ function navLinks(cur) {
 function unitOptions() { return UNITS.map(u => `<option>${esc(u)}</option>`).join(''); }
 
 async function needAdmin() {
-  for (; ;) {
-    const pin = SS.get('pin');
-    if (pin) { const r = await api('adminList'); if (r.ok) return r; SS.del('pin'); }
-    await new Promise(res => {
-      app.innerHTML = `${hero()}<section class="card"><h2>Akses Urus Setia</h2><label>PIN Urus Setia</label><input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="Masukkan PIN"><button class="btn block" id="okp">Masuk</button><div id="pm"></div>${DEMO ? `<p class="small center" style="margin-top:12px">Mod demo: PIN ialah ${DEMO_PIN}</p>` : ''}</section>`;
-      const go = () => { const v = $('#pin').value.trim(); if (!v) return; SS.set('pin', v); res(); };
-      $('#okp').onclick = go; $('#pin').onkeydown = e => { if (e.key === 'Enter') go(); }; $('#pin').focus();
-      if (SS.get('pinbad')) { $('#pm').innerHTML = '<div class="msg err">PIN tidak betul.</div>'; }
-    });
-    const chk = await api('adminList');
-    if (chk.ok) { SS.del('pinbad'); return chk; }
-    SS.del('pin'); SS.set('pinbad', '1');
-    if (chk.code === 'net') { alert(chk.error); }
-  }
+  // PIN yang telah disahkan disimpan untuk sesi ini: terus masuk tanpa menunggu pelayan.
+  // (Jika PIN ternyata salah/ditukar, api() akan meminta PIN semula secara automatik.)
+  if (SS.get('pin')) return true;
+  await new Promise(res => {
+    app.innerHTML = `${hero()}<section class="card fadein"><h2>Akses Urus Setia</h2><label>PIN Urus Setia</label><input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="Masukkan PIN"><button class="btn block" id="okp">Masuk</button><div id="pm"></div>${DEMO ? `<p class="small center" style="margin-top:12px">Mod demo: PIN ialah ${DEMO_PIN}</p>` : ''}</section>`;
+    api('ping'); // panaskan pelayan semasa PIN ditaip
+    const go = async () => {
+      const v = $('#pin').value.trim(); if (!v) return;
+      const b = $('#okp'); b.disabled = true; b.textContent = 'Mengesahkan…'; $('#pm').innerHTML = '';
+      const r = await api('auth', { pin: v });
+      if (r.ok) { SS.set('pin', v); res(); }
+      else { b.disabled = false; b.textContent = 'Masuk'; $('#pm').innerHTML = `<div class="msg err">${esc(r.code === 'pin' ? 'PIN tidak betul.' : r.error)}</div>`; $('#pin').select(); }
+    };
+    $('#okp').onclick = go; $('#pin').onkeydown = e => { if (e.key === 'Enter') go(); }; $('#pin').focus();
+  });
+  return true;
 }
 function fmtTime(iso) { try { return new Date(iso).toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
 
@@ -3111,22 +3124,32 @@ async function pgUndi() {
 /* ============ HALAMAN: POSTER QR ============ */
 async function pgPoster() {
   document.body.classList.add('wide'); buildBg(false);
-  const U = { d: pageUrl('daftar'), v: pageUrl('undi') };
-  app.innerHTML = `${hero()}<div class="posters">
-   <section class="card qrcard"><h2>① Daftar Kehadiran</h2><p>Imbas &amp; masukkan <b>nama</b> dan <b>unit</b><br>untuk terus dapat <b>No. Cabutan Bertuah</b></p><div class="qrbox" id="q1"></div><div class="qrurl">${esc(U.d)}</div></section>
-   <section class="card qrcard"><h2>② Undi Best Dress</h2><p>Imbas untuk mengundi<br><b>Raja Malam</b> &amp; <b>Permaisuri Malam</b></p><div class="qrbox" id="q2"></div><div class="qrurl">${esc(U.v)}</div></section></div>
-  <div class="center noprint" style="margin-top:20px"><button class="btn" onclick="window.print()">🖨 Cetak Poster</button></div>${navLinks('poster')}`;
+  const isV = new URLSearchParams(location.search).get('jenis') === 'undi';
+  const T = isV ? pageUrl('undi') : pageUrl('daftar');
+  const card = isV
+    ? `<h2>Undi Best Dress</h2><p>Imbas untuk mengundi<br><b>Raja Malam</b> &amp; <b>Permaisuri Malam</b></p>`
+    : `<h2>Daftar Kehadiran</h2><p>Imbas &amp; masukkan <b>nama</b> dan <b>unit</b><br>untuk terus dapat <b>No. Cabutan Bertuah</b></p>`;
+  const sw = (k, t) => `<a class="btn ${((k === 'undi') === isV) ? '' : 'ghost'}" href="?page=poster${k === 'undi' ? '&jenis=undi' : ''}">${t}</a>`;
+  app.innerHTML = `${hero()}<div class="noprint center" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:14px">${sw('daftar', 'QR Pendaftaran')}${sw('undi', 'QR Best Dress')}</div>
+   <div style="max-width:420px;margin:0 auto"><section class="card qrcard">${card}<div class="qrbox" id="q1"></div></section></div>
+  <div class="center noprint" style="margin-top:20px"><button class="btn" onclick="window.print()">🖨 Cetak QR Ini</button></div>${navLinks('poster')}`;
   const mk = (id, t) => { try { if (!window.qrcode) (0, eval)($('#qrlib').textContent); const q = qrcode(0, 'M'); q.addData(t); q.make(); $(id).innerHTML = q.createSvgTag({ cellSize: 6, margin: 0, scalable: true }); const sv = $(id + ' svg'); sv.setAttribute('width', 240); sv.setAttribute('height', 240); sv.style.display = 'block'; sv.querySelectorAll('rect,path').forEach(n => { if (n.getAttribute('fill') === '#000000') n.setAttribute('fill', '#1a0f3d'); if (n.getAttribute('fill') === '#ffffff') n.setAttribute('fill', '#fff6dd'); }); } catch (e) { $(id).innerHTML = '<div class="small" style="color:#2a1659;width:240px">Gagal menjana QR: ' + esc(e.message) + '</div>'; } };
-  mk('#q1', U.d); mk('#q2', U.v);
+  mk('#q1', T);
   if (location.protocol === 'file:') app.insertAdjacentHTML('beforeend', '<div class="msg err">Anda membuka fail secara tempatan. Muat naik ke GitHub Pages dahulu supaya QR menunjuk ke alamat web sebenar.</div>');
 }
 
 /* ============ HALAMAN: DASHBOARD ============ */
 async function pgDashboard() {
   document.body.classList.add('wide'); buildBg(false);
-  let d = await needAdmin(); buildBg(false);
-  let q = '';
-  async function refresh(redraw) { const r = await api('adminList'); if (r.ok) { d = r; if (redraw !== false) draw(); } }
+  await needAdmin();
+  const blank = { peserta: [], cabutan: [], undiCount: 0, config: defaultConfig(), byUnit: {}, next: 0 };
+  let last = SS.get('dash') || '', loading = !last, q = '';
+  let d = last ? JSON.parse(last) : blank;
+  async function refresh(redraw) {
+    const r = await api('adminList'); if (!r.ok) return;
+    const j = JSON.stringify(r), was = loading; loading = false;
+    if (j !== last || was) { last = j; d = r; SS.set('dash', j); if (redraw !== false) draw(); }
+  }
   function draw() {
     const maxU = Math.max(1, ...Object.values(d.byUnit));
     const rows = d.peserta.filter(p => !q || (p.nama + p.unit + p.no).toLowerCase().includes(q.toLowerCase()));
@@ -3134,16 +3157,16 @@ async function pgDashboard() {
     app.innerHTML = `${hero()}${navLinks('dashboard')}
     <div class="tiles"><div class="tile"><b>${d.peserta.length}</b><span>Peserta berdaftar</span></div><div class="tile"><b>${d.config.total - d.peserta.length}</b><span>Nombor berbaki</span></div><div class="tile"><b>${d.cabutan.filter(c => !c.absent).length}/${d.config.total}</b><span>Cabutan selesai</span></div><div class="tile"><b>${d.undiCount}</b><span>Pengundi Best Dress</span></div></div>
     <div class="grid2" style="margin-top:14px">
-      <section class="card"><h2>Mengikut Unit</h2>${UNITS.map(u => `<div class="ubar"><span>${esc(u)}</span><div class="bar" style="margin:0"><i style="width:${d.byUnit[u] / maxU * 100}%"></i></div><b>${d.byUnit[u]}</b></div>`).join('')}</section>
+      <section class="card"><h2>Mengikut Unit</h2>${UNITS.map(u => `<div class="ubar"><span>${esc(u)}</span><div class="bar" style="margin:0"><i style="width:${(d.byUnit[u] || 0) / maxU * 100}%"></i></div><b>${d.byUnit[u] || 0}</b></div>`).join('')}</section>
       <section class="card"><h2>Alat Urus Setia</h2>
-        <div class="row"><button class="btn sm" id="tv">${d.config.voteOpen ? '■ Tutup Undian' : '▶ Buka Undian Best Dress'}</button><button class="btn ghost sm" id="csv">⬇ Eksport CSV</button></div>
+        <div class="row"><button class="btn sm" id="tv">${d.config.voteOpen ? '■ Tutup Undian' : '▶ Buka Undian Best Dress'}</button><button class="btn ghost sm" id="csv">⬇ Eksport CSV</button><button class="btn ghost sm" id="fl">↻ Segar semula</button></div>
         <p class="small" style="margin:8px 0">Undian: <b>${d.config.voteOpen ? 'DIBUKA' : 'DITUTUP'}</b>. Tandakan calon Raja/Permaisuri dalam jadual; jika tiada ditanda, semua peserta menjadi calon.</p>
         <div class="dash"></div><label style="margin-top:0">Tambah peserta secara manual</label>
         <input id="an" placeholder="Nama penuh"><div style="height:8px"></div><select id="au"><option value="">— Unit —</option>${unitOptions()}</select><button class="btn sm block" id="aa" style="margin-top:12px">Tambah</button><div id="am"></div>
         ${DEMO ? `<div class="dash"></div><button class="btn ghost sm" id="seed">Isi data demo (50 nama)</button>` : ''}
         <div class="dash"></div><div class="row"><button class="btn red sm" id="r1">Set semula cabutan</button><button class="btn red sm" id="r2">Set semula undi</button><button class="btn red sm" id="r3">Padam semua data</button></div>
       </section></div>
-    <section class="card"><h2>Senarai Peserta</h2><input id="srch" placeholder="Cari nama / unit / nombor…" value="${esc(q)}"><div class="scroll" style="margin-top:10px"><table><tr><th>No.</th><th>Nama</th><th>Unit</th><th>Masa</th><th>Cabutan</th><th>Calon</th><th></th></tr>
+    <section class="card"><h2>Senarai Peserta${loading ? ' · memuatkan…' : ''}</h2><input id="srch" placeholder="Cari nama / unit / nombor…" value="${esc(q)}"><div class="scroll" style="margin-top:10px"><table><tr><th>No.</th><th>Nama</th><th>Unit</th><th>Masa</th><th>Cabutan</th><th>Calon</th><th></th></tr>
     ${rows.map(p => `<tr><td><b style="color:var(--gold)">${String(p.no).padStart(2, '0')}</b></td><td>${esc(p.nama)}</td><td>${esc(p.unit)}</td><td>${fmtTime(p.masa)}</td><td>${won[p.no] ? '#' + won[p.no] : '—'}</td>
     <td><select data-calon="${p.no}"><option value="">—</option><option value="raja" ${p.calon === 'raja' ? 'selected' : ''}>Calon Raja</option><option value="permaisuri" ${p.calon === 'permaisuri' ? 'selected' : ''}>Calon Permaisuri</option></select></td><td><button class="btn ghost sm" data-del="${p.no}" style="padding:6px 10px">✕</button></td></tr>`).join('') || '<tr><td colspan="7" class="small">Tiada peserta.</td></tr>'}</table></div></section>`;
     $('#srch').oninput = e => { q = e.target.value; const pos = e.target.selectionStart; draw(); const s = $('#srch'); s.focus(); s.setSelectionRange(pos, pos); };
@@ -3153,6 +3176,7 @@ async function pgDashboard() {
       const csv = '﻿' + lines.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\r\n');
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'peserta-arabian-night.csv'; document.body.appendChild(a); a.click(); a.remove();
     };
+    $('#fl').onclick = async () => { $('#fl').textContent = 'Memuatkan…'; await api('flush'); loading = true; await refresh(); };
     $('#aa').onclick = async () => { const r = await api('adminAdd', { nama: $('#an').value, unit: $('#au').value }); if (r.ok) { refresh(); } else $('#am').innerHTML = `<div class="msg err">${esc(r.error)}</div>`; };
     document.querySelectorAll('[data-calon]').forEach(s => s.onchange = async () => { await api('setCalon', { no: s.dataset.calon, calon: s.value }); });
     document.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { const p = d.peserta.find(x => String(x.no) === b.dataset.del); if (!confirm('Padam ' + p.nama + ' (No. ' + p.no + ')?')) return; const r = await api('adminDelete', { no: p.no }); if (!r.ok) alert(r.error); refresh(); });
@@ -3164,19 +3188,21 @@ async function pgDashboard() {
       refresh();
     };
   }
-  draw();
-  setInterval(() => { if (document.activeElement && ['INPUT', 'SELECT'].includes(document.activeElement.tagName)) return; refresh(); }, 15000);
+  draw(); refresh();
+  setInterval(() => { if (document.hidden) return; if (document.activeElement && ['INPUT', 'SELECT'].includes(document.activeElement.tagName)) return; refresh(); }, 15000);
+  setInterval(() => api('ping'), 240000);
 }
 
 /* ============ HALAMAN: CABUTAN ============ */
 async function pgCabutan() {
-  buildBg(false); const first = await needAdmin();
+  buildBg(false); await needAdmin();
   document.body.classList.add('stage'); buildBg(true);
-  let S = { config: first.config, cabutan: first.cabutan, next: first.next, pool: first.peserta.map(p => p.no), registered: first.peserta.length };
+  let S; try { S = JSON.parse(SS.get('drawS') || 'null'); } catch (e) { S = null; }
+  S = S || { config: defaultConfig(), cabutan: [], next: 0, pool: [], registered: 0 };
   const sessOf = n => S.config.sessions.find(s => n <= s.dari && n >= s.hingga);
   const prizeOf = n => (S.config.prizes && S.config.prizes[String(n)]) || '';
   let busy = false, pending = null;
-  async function reload() { const r = await api('drawState'); if (r.ok) S = r; }
+  async function reload() { const r = await api('drawState'); if (r.ok) { S = r; SS.set('drawS', JSON.stringify(r)); } return r.ok; }
   app.innerHTML = `<div class="stage-wrap">
     <div class="topbar noprint"><div class="brand">✦ ARABIAN NIGHT ✦</div><div class="pills" id="pills"></div>
       <div class="tools"><button class="ib" id="bm" title="Muzik">♪</button><button class="ib" id="bl" title="Senarai pemenang">☰</button><button class="ib" id="bs" title="Tetapan">⚙</button><button class="ib" id="bf" title="Skrin penuh">⛶</button><a class="ib" href="${pageUrl('dashboard')}" title="Dashboard" style="text-decoration:none">⌂</a></div></div>
@@ -3232,7 +3258,7 @@ async function pgCabutan() {
   $('#bf').onclick = () => { const e = document.documentElement; if (document.fullscreenElement) document.exitFullscreen(); else if (e.requestFullscreen) e.requestFullscreen().catch(() => { }); };
 
   async function draw() {
-    if (busy || !S.next) return; busy = true; Snd.unlock(); Snd.unlockSfx(); paint();
+    if (busy || !S.next || $('#go').disabled) return; busy = true; Snd.unlock(); Snd.unlockSfx(); paint();
     const sfxKey = n => n === 3 ? 'p3' : n === 2 ? 'p2' : n === 1 ? 'p1' : 'menang';
     if (S.next === 3) Snd.sfx('grand', true);
     $('#go').disabled = true; $('#after').innerHTML = ''; $('#note').textContent = '';
@@ -3262,15 +3288,22 @@ async function pgCabutan() {
   }
   $('#go').onclick = draw;
   document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && !document.querySelector('.modal') && !['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(document.activeElement.tagName)) { e.preventDefault(); draw(); } });
-  paint();
+  $('#go').disabled = true; paint(); $('#go').disabled = true;
+  reload().then(ok => {
+    if (ok) { paint(); $('#go').disabled = false; }
+    else $('#warn').innerHTML = '<div class="msg err" style="max-width:520px;margin:10px auto">Tidak dapat memuatkan data cabutan. Semak internet dan muat semula halaman.</div>';
+  });
+  setInterval(() => api('ping'), 240000);
 }
 
 /* ============ HALAMAN: BEST DRESS (PENTAS) ============ */
 async function pgBest() {
   document.body.classList.add('wide'); buildBg(false);
-  let d = await needAdmin(); buildBg(false);
-  let R = await api('results'), revealed = { raja: false, permaisuri: false };
-  async function load() { const r = await api('results'); if (r.ok) R = r; const a = await api('adminList'); if (a.ok) d = a; }
+  await needAdmin();
+  let R; try { R = JSON.parse(SS.get('bestR') || 'null'); } catch (e) { R = null; }
+  R = R || { ok: true, voteOpen: false, pengundi: 0, raja: [], permaisuri: [] };
+  const revealed = { raja: false, permaisuri: false };
+  async function load() { const r = await api('results'); if (r.ok) { R = r; SS.set('bestR', JSON.stringify(r)); } }
   function top3(list, key) {
     const t = list.slice(0, 3); const max = Math.max(1, ...list.map(c => c.undi));
     return `<div class="podium">${t.map((c, i) => `<div><div class="v">${c.undi} undi</div><b>${esc(c.nama)}</b><br><span class="small">No. ${String(c.no).padStart(2, '0')} · ${esc(c.unit)}</span></div>`).join('')}</div>`;
@@ -3289,7 +3322,8 @@ async function pgBest() {
     $('#rf').onclick = async () => { await load(); draw(); };
     document.querySelectorAll('[data-rev]').forEach(b => b.onclick = async () => { await load(); revealed[b.dataset.rev] = true; Snd.unlock(); Snd.fanfare(true); draw(); FX.big(); });
   }
-  draw();
+  draw(); load().then(draw);
+  setInterval(() => api('ping'), 240000);
 }
 
 /* ============ ROUTER ============ */
