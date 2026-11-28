@@ -2785,13 +2785,18 @@ function summary(store) {
 function handle(store, req, env) {
   migrateConfig(store);
   var a = req.action, cfg = store.config;
-  var open = { info: 1, voteInfo: 1, register: 1, vote: 1, ping: 1 };
+  var open = { info: 1, voteInfo: 1, register: 1, vote: 1, ping: 1, cek: 1 };
   if (!open[a] && String(req.pin == null ? '' : req.pin) !== String(env.pin)) return err('PIN tidak betul.', 'pin');
 
   switch (a) {
     case 'ping': return { ok: true };
 
     case 'auth': return { ok: true };
+
+    case 'cek': {
+      var cn = toInt(req.no, 0), ada = store.peserta.some(function (p) { return p.no === cn && norm(p.nama) === norm(req.nama); });
+      return { ok: true, ada: ada };
+    }
 
     case 'flush': return { ok: true };
 
@@ -2968,7 +2973,7 @@ async function api(action, data) {
 }
 async function _api(action, data) {
   const req = Object.assign({ action, pin: SS.get('pin') || '' }, data || {});
-  const READ = ['info', 'voteInfo', 'adminList', 'drawState', 'results', 'ping', 'foto'];
+  const READ = ['info', 'voteInfo', 'adminList', 'drawState', 'results', 'ping', 'foto', 'cek'];
   const RETRY = READ.concat(['register', 'vote', 'adminAdd', 'setConfig', 'setCalon']);
   if (DEMO) { await sleep(120); return JSON.parse(JSON.stringify(demoCall(req))); }
   const once = async () => {
@@ -3223,7 +3228,11 @@ async function pgDaftar() {
   app.innerHTML = `<div class="split">${hero()}<div class="col"><section class="card arch" id="card"></section><div class="foot"><div class="oline"><i></i><b>✦</b><i></i></div><div class="f1">Kelab Bahagian Pengurusan</div><div class="f2">· SPP ·</div></div></div></div>`;
   let info = null, timer = null;
   const saved = DEMO ? null : LS.get('reg', null);
-  if (saved) ticket(saved, true); else form();
+  if (saved) {
+    ticket(saved, true);
+    // Jika data sudah dipadam (cth. selepas ujian), buang tiket lama pada peranti ini dan papar borang baharu.
+    api('cek', { no: saved.no, nama: saved.nama }).then(r => { if (r.ok && !r.ada) { try { localStorage.removeItem('an_reg'); } catch (e) { } form(); api('info').then(x => { if (x.ok) { info = x; quota(); } }); } });
+  } else form();
   api('info').then(r => { if (r.ok) { info = r; if (!LS.get('reg', null)) quota(); } });
 
   function quota() {
