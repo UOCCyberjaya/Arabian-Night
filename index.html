@@ -158,7 +158,7 @@ input::placeholder{color:rgba(255,246,221,.4)}
 .qrcard .qrsub b{color:var(--gold)}
 @media print{#bg canvas,.noprint{display:none!important}}
 body.qrp{overflow:hidden;height:100dvh}
-body.qrp #app{max-width:none!important;width:100%;height:100dvh;min-height:0;padding:2vh 2vw!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6vh;animation:none}
+body.qrp #app{max-width:none!important;width:100%;height:100dvh;min-height:0;padding:2vh 2vw 6vh!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6vh;animation:none}
 body.qrp #carpet{display:none!important}
 body.qrp .hero{margin:0!important;padding:0!important}
 body.qrp .hero .title{font-size:min(7.4vh,8vw)!important;margin:0!important;line-height:1.05}
@@ -171,8 +171,9 @@ body.qrp .qrcard{margin:0!important;padding:2vh 3.4vh 2.4vh!important;border-rad
 body.qrp .qrcard h2{font-size:min(4vh,6.4vw)!important;margin:0 0 .6vh!important}
 body.qrp .qrsub{font-size:min(2.6vh,4.2vw);line-height:1.35;margin:0 0 1.2vh}
 body.qrp .qrbox{margin:0;padding:1.5vh;border-radius:2vh;border-width:.5vh}
-body.qrp .qrbox svg{width:min(47vh,72vw)!important;height:auto!important}
-body.qrp .vcount{font-size:min(2.4vh,4vw);color:var(--gold2);min-height:1.2em;letter-spacing:.08em}
+body.qrp .qrbox svg{width:min(38vh,70vw)!important;height:auto!important}
+body.qrp .vcount{font-size:min(3.2vh,5vw);font-weight:800;color:#fff3c4;min-height:1.2em;letter-spacing:.08em;animation:vglow 1.5s ease-in-out infinite alternate}
+@keyframes vglow{from{opacity:.5;text-shadow:0 0 6px rgba(242,193,78,.5)}to{opacity:1;text-shadow:0 0 14px #ffd75e,0 0 34px #f2c14e,0 0 60px rgba(242,193,78,.8)}}
 body.qrp .vcount b{font-family:var(--disp);color:var(--gold);font-size:1.25em}
 /* butang halaman berikut / sebelum (separa lutsinar supaya tidak mengganggu skrin LED) */
 .flownav{position:fixed;top:10px;right:10px;z-index:60;display:flex;gap:6px;opacity:.25;transition:opacity .2s}
@@ -3128,80 +3129,35 @@ const FX = (() => {
   };
 })();
 
-/* ============ BUNYI ============ */
+/* ============ BUNYI (hanya fail mp3 dalam repo) ============ */
 const Snd = (() => {
-  let ctx, master, musicOn = false, timer = null, tnext = 0, step = 0, drone = [], idx = 3, file = null, noiseBuf;
-  const HIJ = [146.83, 155.56, 185.0, 196.0, 220.0, 233.08, 261.63, 293.66, 311.13, 369.99, 392.0, 440.0, 466.16, 523.25, 587.33];
-  function init() {
-    if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
-    ctx = new (window.AudioContext || window.webkitAudioContext)(); master = ctx.createGain(); master.gain.value = .55; master.connect(ctx.destination);
-    noiseBuf = ctx.createBuffer(1, ctx.sampleRate * .12, ctx.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-  }
-  function pluck(t, f, g) {
-    const o = ctx.createOscillator(), o2 = ctx.createOscillator(), a = ctx.createGain();
-    o.type = 'triangle'; o2.type = 'sine'; o.frequency.value = f; o2.frequency.value = f * 2;
-    a.gain.setValueAtTime(.0001, t); a.gain.exponentialRampToValueAtTime(g, t + .012); a.gain.exponentialRampToValueAtTime(.0001, t + 1.0);
-    o.connect(a); o2.connect(a); a.connect(master); o.start(t); o2.start(t); o.stop(t + 1.05); o2.stop(t + 1.05);
-  }
-  function drum(t, kind) {
-    const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), a = ctx.createGain(); s.buffer = noiseBuf;
-    if (kind === 'dum') { f.type = 'lowpass'; f.frequency.value = 220; a.gain.setValueAtTime(.55, t); } else { f.type = 'highpass'; f.frequency.value = 2800; a.gain.setValueAtTime(.16, t); }
-    a.gain.exponentialRampToValueAtTime(.0001, t + .11); s.connect(f); f.connect(a); a.connect(master); s.start(t);
-  }
-  function sched() {
-    while (tnext < ctx.currentTime + .45) {
-      const p = step % 16;
-      if (p === 0 || p === 8 || p === 10) drum(tnext, 'dum'); else if (p === 4 || p === 6 || p === 12 || p === 14 || p === 15) drum(tnext, 'tek');
-      if (step % 2 === 0 || Math.random() < .35) { idx += [-2, -1, -1, 0, 1, 1, 2][Math.floor(Math.random() * 7)]; if (idx < 4) idx = 5; if (idx > 13) idx = 11; pluck(tnext, HIJ[idx], .14); }
-      tnext += .21; step++;
-    }
-  }
+  const cache = {}; let cur = null, bgm = null;
+  const mk = f => { const a = new Audio(); a.preload = 'auto'; a.src = f; return a; };
   return {
-    get on() { return musicOn; },
-    unlock() { init(); },
-    tick() { if (!ctx) return; const t = ctx.currentTime, o = ctx.createOscillator(), a = ctx.createGain(); o.type = 'square'; o.frequency.value = 760 + Math.random() * 160; a.gain.setValueAtTime(.05, t); a.gain.exponentialRampToValueAtTime(.0001, t + .05); o.connect(a); a.connect(master); o.start(t); o.stop(t + .06); },
-    fanfare(big) { init(); const t = ctx.currentTime, seq = big ? [4, 6, 7, 9, 11, 13, 14, 14] : [4, 7, 9, 11, 14]; seq.forEach((n, i) => pluck(t + i * .13, HIJ[n] * 1, .22)); [0, 2, 4].forEach(k => pluck(t + seq.length * .13, HIJ[7 + k], .2)); },
-    sfx(key, big) {
-      init();
-      try {
-        if (!this._c) this._c = {};
-        if (this._cur) { this._cur.pause(); this._cur = null; }
-        const file = SFX_FILES[key]; if (!file) return this.fanfare(big);
-        const a = this._c[key] || (this._c[key] = new Audio(file));
-        a.currentTime = 0; this._cur = a;
-        const pr = a.play();
-        if (pr && pr.catch) pr.catch(() => { if (this._cur === a) this._cur = null; this.fanfare(big); });
-      } catch (e) { this.fanfare(big); }
-    },
-    stopSfx() { try { if (this._cur) { this._cur.pause(); this._cur = null; } } catch (e) { } },
-    preload() {
-      if (!file && !this._bgm) { const a = new Audio(); a.preload = 'auto'; a.loop = true; a.addEventListener('loadeddata', () => { if (!file) file = a; }); a.src = BGM_FILE; this._bgm = a; }
-      this._c = this._c || {};
-      Object.keys(SFX_FILES).forEach(k => { if (!this._c[k]) { const a = new Audio(); a.preload = 'auto'; a.src = SFX_FILES[k]; this._c[k] = a; } });
-    },
+    onEnd: null,
+    unlock() { }, tick() { },
+    preload() { if (!bgm) { bgm = mk(BGM_FILE); bgm.loop = true; } Object.keys(SFX_FILES).forEach(k => { if (!cache[k]) cache[k] = mk(SFX_FILES[k]); }); },
     unlockSfx() {
-      if (this._unl) return; this._unl = true;
-      Object.keys(this._c || {}).forEach(k => { const a = this._c[k]; a.muted = true; const p = a.play(); if (p && p.then) p.then(() => { a.pause(); a.currentTime = 0; a.muted = false; }).catch(() => { a.muted = false; }); });
+      if (this._u) return; this._u = true; this.preload();
+      [bgm].concat(Object.keys(cache).map(k => cache[k])).forEach(a => { a.muted = true; const p = a.play(); if (p && p.then) p.then(() => { a.pause(); a.currentTime = 0; a.muted = false; }).catch(() => { a.muted = false; }); });
     },
-    setFile(f) { init(); if (file) { file.pause(); file = null; } if (f) { file = new Audio(URL.createObjectURL(f)); file.loop = true; if (musicOn) file.play().catch(() => { }); } },
+    sfx(key) {
+      this.preload(); this.stopSfx(); const a = cache[key]; if (!a) return;
+      try { a.currentTime = 0; } catch (e) { }
+      cur = a; a.onended = () => { if (cur === a) { cur = null; if (this.onEnd) this.onEnd(); } };
+      const p = a.play(); if (p && p.catch) p.catch(() => { if (cur === a) { cur = null; if (this.onEnd) this.onEnd(); } });
+    },
+    stopSfx() { if (cur) { try { cur.pause(); } catch (e) { } cur = null; } if (this.onEnd) this.onEnd(); },
     spinMusic(on) {
-      if (on) { if (file) { try { file.currentTime = 0; } catch (e) { } } if (!musicOn) { this.toggle(); this._auto = true; } }
-      else if (this._auto) { this._auto = false; if (musicOn) this.toggle(); }
-    },
-    toggle() {
-      init(); musicOn = !musicOn;
-      if (musicOn) {
-        if (file) file.play().catch(() => { });
-        else {
-          tnext = ctx.currentTime + .1; step = 0;
-          drone = [73.42, 110].map(f => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.value = .05; o.connect(g); g.connect(master); o.start(); return o; });
-          timer = setInterval(sched, 100);
-        }
-      } else { if (file) file.pause(); clearInterval(timer); drone.forEach(o => { try { o.stop(); } catch (e) { } }); drone = []; }
-      return musicOn;
+      this.preload();
+      if (on) { try { bgm.currentTime = 0; } catch (e) { } const p = bgm.play(); if (p && p.catch) p.catch(() => { }); }
+      else { try { bgm.pause(); } catch (e) { } }
     }
   };
 })();
+function goFull() { const e = document.documentElement; if (!document.fullscreenElement && e.requestFullscreen) e.requestFullscreen().catch(() => { }); }
+function toggleFull() { if (document.fullscreenElement) document.exitFullscreen(); else goFull(); }
+function autoFull() { listen(document, 'pointerdown', goFull, { once: true }); }   // masuk skrin penuh pada klik pertama
 
 /* ============ KOMPONEN ============ */
 function hero() {
@@ -3248,7 +3204,7 @@ const FLOW = ['poster', 'cabutan', 'posterundi', 'queen', 'sultan'];
 const flowPrev = c => FLOW[FLOW.indexOf(c) - 1] || 'dashboard';
 const flowNext = c => FLOW[FLOW.indexOf(c) + 1] || 'dashboard';
 function flowNav(cur) {
-  return `<div class="flownav noprint"><a class="ib" href="${pageUrl(flowPrev(cur))}" title="Sebelumnya">‹</a><a class="ib" href="${pageUrl('dashboard')}" title="Dashboard">⌂</a><a class="ib nx ready" href="${pageUrl(flowNext(cur))}" title="Seterusnya">›</a></div>`;
+  return `<div class="flownav noprint"><a class="ib" href="${pageUrl(flowPrev(cur))}" title="Sebelumnya">‹</a><button class="ib" onclick="toggleFull()" title="Skrin penuh">⛶</button><a class="ib" href="${pageUrl('dashboard')}" title="Dashboard">⌂</a><a class="ib nx ready" href="${pageUrl(flowNext(cur))}" title="Seterusnya">›</a></div>`;
 }
 function unitOptions() { return UNITS.map(u => `<option>${esc(u)}</option>`).join(''); }
 
@@ -3465,7 +3421,7 @@ async function pgUndi() {
 /* ============ HALAMAN: QR (paparan skrin LED) ============ */
 function qrMake(text) { if (!window.qrcode) (0, eval)($('#qrlib').textContent); const q = qrcode(0, 'M'); q.addData(text); q.make(); return q; }
 async function pgPoster(kind) {
-  document.body.classList.add('qrp'); buildBg(true);
+  document.body.classList.add('qrp'); buildBg(true); autoFull();
   const isV = kind === 'undi';
   const T = pageUrl(isV ? 'undi' : 'daftar');
   const card = isV
@@ -3563,7 +3519,8 @@ async function pgDashboard() {
       <section class="card"><h2>Alat Urus Setia</h2>
         <div class="row"><button class="btn sm" id="tv">${d.config.voteOpen ? '■ Tutup Undian' : '▶ Buka Undian Best Dress'}</button><button class="btn ghost sm" id="csv">⬇ Eksport CSV</button><button class="btn ghost sm" id="fl">↻ Segar semula</button>${DEMO ? '<button class="btn ghost sm" id="seed">🧪 Isi 50 peserta contoh</button>' : ''}</div>
         <p class="small" style="margin:8px 0">Undian: <b class="vstat">${d.config.voteOpen ? 'DIBUKA' : 'DITUTUP'}</b>. Calon automatik: peserta Lelaki → Sultan of the Night, Perempuan → Queen of the Night. Undian dibuka sendiri apabila halaman QR Best Dress dipaparkan dan ditutup apabila halaman Keputusan dibuka.</p>
-        <div class="row" style="margin-bottom:6px"><button class="btn ghost sm" id="qa4">⬇ QR Daftar A4 (cetak)</button><button class="btn ghost sm" id="qa3">⬇ QR Daftar A3 (cetak)</button></div>
+        <p class="small" style="margin:6px 0">Sesi cabutan (${d.peserta.length} peserta berdaftar): ${effSessions(d.config, d.peserta.length).map(x => `${esc(x.nama)} ${x.dari}–${x.hingga}`).join(' · ') || '—'}</p>
+        <div class="row" style="margin-bottom:6px"><button class="btn sm" id="cfg">⚙ Tetapan Cabutan (hadiah & sesi)</button><button class="btn ghost sm" id="qa4">⬇ QR Daftar A4 (cetak)</button><button class="btn ghost sm" id="qa3">⬇ QR Daftar A3 (cetak)</button></div>
         <div class="dash"></div><label style="margin-top:0">Daftar manual (kaunter urus setia)</label>
         <input id="an" placeholder="Nama penuh"><div style="height:8px"></div><select id="au"><option value="">— Unit —</option>${unitOptions()}</select><div style="height:8px"></div><select id="ag"><option value="">— Jantina —</option><option value="L">Lelaki</option><option value="P">Perempuan</option></select><button class="btn sm block" id="aa" style="margin-top:12px">Tambah</button><div id="am"></div>
         <div class="dash"></div><div class="row"><button class="btn red sm" id="r1">Set semula cabutan</button><button class="btn red sm" id="r2">Set semula undi</button><button class="btn red sm" id="r3">Padam semua data</button></div>
@@ -3584,6 +3541,7 @@ async function pgDashboard() {
     };
     const dq = (id, sz) => { const b = $(id); b.onclick = async () => { const t = b.textContent; b.disabled = true; b.textContent = 'Menjana…'; try { await downloadQR(sz); } catch (e) { alert('Gagal menjana QR: ' + e.message); } b.disabled = false; b.textContent = t; }; };
     dq('#qa4', 'A4'); dq('#qa3', 'A3');
+    $('#cfg').onclick = () => settingsModal(d.config, c => { d.config = c; SS.set('dash', JSON.stringify(d)); draw(); refresh(); });
     $('#csv').onclick = () => {
       const lines = [['No', 'Nama', 'Unit', 'Jantina', 'Masa', 'Cabutan']].concat(d.peserta.map(p => [p.no, p.nama, p.unit, p.jantina || '', p.masa, won[p.no] || '']));
       const csv = '﻿' + lines.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\r\n');
@@ -3623,6 +3581,28 @@ async function pgDashboard() {
   every(() => api('ping'), 240000);
 }
 
+function settingsModal(c, after) {
+    const m = document.createElement('div'); m.className = 'modal';
+    const prizeTxt = Object.keys(c.prizes || {}).sort((a, b) => b - a).map(k => `${k}=${c.prizes[k]}`).join('\n');
+    m.innerHTML = `<div class="box"><h2 style="font-family:var(--disp);color:var(--gold)">Tetapan Cabutan</h2>
+    <label>Jumlah cabutan / nombor (mula kira turun dari nombor ini)</label><input id="tt" type="number" min="1" value="${c.total}">
+    <label>Sesi (nama · dari · hingga · hadiah sesi). Jika peserta berdaftar kurang daripada jumlah, sesi dipotong automatik mengikut bilangan berdaftar sahaja.</label><div id="ss"></div><button class="btn ghost sm" id="adds" style="margin-top:8px">+ Tambah sesi</button>
+    <label>Senarai hadiah — satu baris satu hadiah, format <code>no=nama hadiah</code> (cth <code>60=Baucar RM30</code>)</label><textarea id="pz" rows="7" placeholder="60=Baucar RM30&#10;3=Hadiah Podium No. 3">${esc(prizeTxt)}</textarea>
+    <div id="sm"></div><div class="row" style="margin-top:16px"><button class="btn sm" id="sv">Simpan</button><button class="btn ghost sm" id="sx">Batal</button></div></div>`;
+    document.body.appendChild(m);
+    const addRow = s => { const r = document.createElement('div'); r.className = 'srow'; r.innerHTML = `<input value="${esc(s.nama)}" class="a"><input type="number" value="${s.dari}" class="b"><input type="number" value="${s.hingga}" class="c"><input value="${esc(s.hadiah || '')}" class="d" placeholder="Hadiah sesi"><button class="btn ghost sm" style="padding:6px 12px">✕</button>`; r.querySelector('button').onclick = () => r.remove(); $('#ss', m).appendChild(r); };
+    c.sessions.forEach(addRow); $('#adds', m).onclick = () => addRow({ nama: 'Sesi ' + ($('#ss', m).children.length + 1), dari: 1, hingga: 1, hadiah: '' });
+    $('#sx', m).onclick = () => m.remove();
+    $('#sv', m).onclick = async () => {
+      const sessions = [...$('#ss', m).children].map(r => ({ nama: r.querySelector('.a').value, dari: r.querySelector('.b').value, hingga: r.querySelector('.c').value, hadiah: r.querySelector('.d').value }));
+      const prizes = {}; $('#pz', m).value.split('\n').forEach(l => { const i = l.indexOf('='); if (i > 0) { const k = l.slice(0, i).trim(), v = l.slice(i + 1).trim(); if (k && v) prizes[k] = v; } });
+      $('#sv', m).disabled = true; $('#sv', m).textContent = 'Menyimpan…';
+      const r = await api('setConfig', { config: { total: $('#tt', m).value, sessions, prizes } });
+      if (!r.ok) { $('#sv', m).disabled = false; $('#sv', m).textContent = 'Simpan'; return $('#sm', m).innerHTML = `<div class="msg err">${esc(r.error)}</div>`; }
+      m.remove(); if (after) after(r.config);
+    };
+  }
+
 /* ============ HALAMAN: CABUTAN ============ */
 async function pgCabutan() {
   buildBg(false); await needAdmin();
@@ -3636,13 +3616,15 @@ async function pgCabutan() {
   async function reload() { const r = await api('drawState'); if (r.ok) { S = r; SS.set('drawS', JSON.stringify(r)); } return r.ok; }
   app.innerHTML = `<div class="stage-wrap">
     <div class="topbar noprint"><div class="brand">✦ ARABIAN NIGHT ✦</div><div class="pills" id="pills"></div>
-      <div class="tools"><button class="ib" id="bm" title="Muzik">♪</button><button class="ib" id="bl" title="Senarai pemenang">☰</button><button class="ib" id="bs" title="Tetapan">⚙</button><button class="ib" id="bf" title="Skrin penuh">⛶</button><a class="ib" href="${pageUrl(flowPrev('cabutan'))}" title="Sebelumnya">‹</a><a class="ib" href="${pageUrl('dashboard')}" title="Dashboard">⌂</a><a class="ib nx" id="nx" href="${pageUrl(flowNext('cabutan'))}" title="Seterusnya: QR Best Dress">›</a></div></div>
+      <div class="tools"><button class="ib" id="bl" title="Senarai pemenang">☰</button><button class="ib" id="bf" title="Skrin penuh">⛶</button><a class="ib" href="${pageUrl(flowPrev('cabutan'))}" title="Sebelumnya">‹</a><a class="ib" href="${pageUrl('dashboard')}" title="Dashboard">⌂</a><a class="ib nx" id="nx" href="${pageUrl(flowNext('cabutan'))}" title="Seterusnya: QR Best Dress">›</a></div></div>
     <div class="mid"><div class="sesi" id="sesi"></div><div class="cabno" id="cabno">CABUTAN NO.<b id="cn">–</b></div><div class="prize" id="prize"></div>
       <div class="reelwrap"><div class="reel" id="reel">--</div></div>
       <div class="winner" id="winner"></div><div class="note" id="note"></div>
-      <div class="ctrl"><button class="btn go" id="go">Cabut!</button></div><div class="ctrl noprint" id="after"></div><div id="warn" class="small"></div></div>
+      <div class="ctrl"><button class="btn go" id="go">Cabut!</button><button class="btn ghost hide" id="stopm">■ Henti Muzik</button></div><div class="ctrl noprint" id="after"></div><div id="warn" class="small"></div></div>
   </div><aside class="drawer" id="drawer"></aside>`;
-  const reel = $('#reel'); Snd.preload();
+  const reel = $('#reel'); Snd.preload(); autoFull();
+  Snd.onEnd = () => { const b = $('#stopm'); if (b) b.classList.add('hide'); };
+  $('#stopm').onclick = () => Snd.stopSfx();
   function pad(n) { return String(n).padStart(2, '0'); }
   function paint(keep) {
     const n = S.next, ses = n ? sessOf(n) : null;
@@ -3665,36 +3647,11 @@ async function pgCabutan() {
     $('#drawer').innerHTML = `<h2 style="font-family:var(--disp);color:var(--gold);margin-bottom:6px">Senarai Pemenang</h2><p class="small">${S.cabutan.filter(c => !c.absent).length} / ${Math.min(S.config.total, S.registered || S.config.total)}</p>${L.map(c => `<div class="wl" style="${c.absent ? 'opacity:.4;text-decoration:line-through' : ''}"><span class="c">#${c.cabutan}</span><span class="n">${pad(c.no)}</span><span><b>${esc(c.nama)}</b><br><span class="small">${esc(c.unit)}</span></span></div>`).join('') || '<p class="small">Belum ada.</p>'}<button class="btn ghost sm block" id="cl">Tutup</button>`;
     $('#cl').onclick = () => $('#drawer').classList.remove('open');
   }
-  function settings() {
-    const c = S.config; const m = document.createElement('div'); m.className = 'modal';
-    const prizeTxt = Object.keys(c.prizes || {}).sort((a, b) => b - a).map(k => `${k}=${c.prizes[k]}`).join('\n');
-    m.innerHTML = `<div class="box"><h2 style="font-family:var(--disp);color:var(--gold)">Tetapan Cabutan</h2>
-    <label>Jumlah cabutan / nombor (mula kira turun dari nombor ini)</label><input id="tt" type="number" min="1" value="${c.total}">
-    <label>Sesi (nama · dari · hingga · hadiah sesi). Jika peserta berdaftar kurang daripada jumlah, sesi dipotong automatik mengikut bilangan berdaftar sahaja.</label><div id="ss"></div><button class="btn ghost sm" id="adds" style="margin-top:8px">+ Tambah sesi</button>
-    <label>Senarai hadiah — satu baris satu hadiah, format <code>no=nama hadiah</code> (cth <code>60=Baucar RM30</code>)</label><textarea id="pz" rows="7" placeholder="60=Baucar RM30&#10;3=Hadiah Podium No. 3">${esc(prizeTxt)}</textarea>
-    <label>Muzik latar (pilihan: pilih fail MP3 sendiri; jika tidak, muzik Arab automatik digunakan)</label><input type="file" id="mf" accept="audio/*">
-    <div id="sm"></div><div class="row" style="margin-top:16px"><button class="btn sm" id="sv">Simpan</button><button class="btn ghost sm" id="sx">Batal</button></div></div>`;
-    document.body.appendChild(m);
-    const addRow = s => { const r = document.createElement('div'); r.className = 'srow'; r.innerHTML = `<input value="${esc(s.nama)}" class="a"><input type="number" value="${s.dari}" class="b"><input type="number" value="${s.hingga}" class="c"><input value="${esc(s.hadiah || '')}" class="d" placeholder="Hadiah sesi"><button class="btn ghost sm" style="padding:6px 12px">✕</button>`; r.querySelector('button').onclick = () => r.remove(); $('#ss', m).appendChild(r); };
-    c.sessions.forEach(addRow); $('#adds', m).onclick = () => addRow({ nama: 'Sesi ' + ($('#ss', m).children.length + 1), dari: 1, hingga: 1, hadiah: '' });
-    $('#sx', m).onclick = () => m.remove();
-    $('#mf', m).onchange = e => { if (e.target.files[0]) Snd.setFile(e.target.files[0]); };
-    $('#sv', m).onclick = async () => {
-      const sessions = [...$('#ss', m).children].map(r => ({ nama: r.querySelector('.a').value, dari: r.querySelector('.b').value, hingga: r.querySelector('.c').value, hadiah: r.querySelector('.d').value }));
-      const prizes = {}; $('#pz', m).value.split('\n').forEach(l => { const i = l.indexOf('='); if (i > 0) { const k = l.slice(0, i).trim(), v = l.slice(i + 1).trim(); if (k && v) prizes[k] = v; } });
-      $('#sv', m).disabled = true; $('#sv', m).textContent = 'Menyimpan…';
-      const r = await api('setConfig', { config: { total: $('#tt', m).value, sessions, prizes } });
-      if (!r.ok) { $('#sv', m).disabled = false; $('#sv', m).textContent = 'Simpan'; return $('#sm', m).innerHTML = `<div class="msg err">${esc(r.error)}</div>`; }
-      m.remove(); await reload(); paint();
-    };
-  }
   $('#bl').onclick = () => { showList(); $('#drawer').classList.toggle('open'); };
-  $('#bs').onclick = settings;
-  $('#bm').onclick = () => { const on = Snd.toggle(); $('#bm').style.background = on ? 'rgba(242,193,78,.35)' : ''; };
   $('#bf').onclick = () => { const e = document.documentElement; if (document.fullscreenElement) document.exitFullscreen(); else if (e.requestFullscreen) e.requestFullscreen().catch(() => { }); };
 
   async function draw() {
-    if (busy || !S.next || $('#go').disabled) return; busy = true; Snd.unlock(); Snd.unlockSfx(); paint();
+    if (busy || !S.next || $('#go').disabled) return; busy = true; Snd.stopSfx(); Snd.unlockSfx(); paint();
     const sfxKey = n => n === 3 ? 'p3' : n === 2 ? 'p2' : n === 1 ? 'p1' : 'menang';
     if (S.next === 3) Snd.sfx('grand', true);
     $('#go').disabled = true; $('#after').innerHTML = ''; $('#note').textContent = ''; Snd.spinMusic(true);
@@ -3711,7 +3668,7 @@ async function pgCabutan() {
     const delays = [90, 110, 135, 165, 200, 250, 310, 380, 470]; let last = -1;
     for (const dl of delays) { let x; do { x = rnd(); } while (x === last && pool.length > 1); last = x; reel.textContent = pad(x); Snd.tick(); await sleep(dl); }
     Snd.spinMusic(false); reel.textContent = pad(res.winner.no); reel.classList.remove('spin'); reel.classList.add('land');
-    const big = res.winner.cabutan <= 3; Snd.sfx(sfxKey(res.winner.cabutan), big);
+    const big = res.winner.cabutan <= 3; Snd.sfx(sfxKey(res.winner.cabutan), big); $('#stopm').classList.remove('hide');
     const fr = fotoP ? await fotoP : null, fsrc = fr && fr.ok ? fr.foto : '';
     w.innerHTML = `${fsrc ? `<img class="wph" src="${fsrc}" alt="">` : `<div class="wph ini">${esc(res.winner.nama.charAt(0))}</div>`}<div class="wt"><div class="wn">${esc(res.winner.nama)}</div><div class="wu">${esc(res.winner.unit)}</div>${prizeOf(res.winner.cabutan) ? `<div class="wp">🎁 ${esc(prizeOf(res.winner.cabutan))}</div>` : ''}</div>`;
     w.classList.add('show'); big ? FX.big() : FX.burst(innerWidth / 2, innerHeight * .4, 140, 11);
@@ -3733,7 +3690,7 @@ async function pgCabutan() {
 
 /* ============ HALAMAN: KEPUTUSAN QUEEN / SULTAN (skrin LED) ============ */
 async function pgResult(cat) {
-  document.body.classList.add('res'); buildBg(true);
+  document.body.classList.add('res'); buildBg(true); autoFull();
   await needAdmin();
   const isQ = cat === 'permaisuri', title = isQ ? 'Queen of the Night' : 'Sultan of the Night', icon = isQ ? '👑' : '🤴', page = isQ ? 'queen' : 'sultan';
   Snd.preload();
@@ -3751,12 +3708,18 @@ async function pgResult(cat) {
     rw.className = 'resw';
     rw.innerHTML = head() + `<div class="rrow"><div class="rw"><div class="ph">?</div><div class="nm" id="sn">…</div></div></div><div class="rwait">Siapakah pemenangnya?</div>`;
     const W0 = winners(R); W0.forEach(c => { if (fotos[c.no] === undefined) api('foto', { no: c.no }).then(r => { fotos[c.no] = r.ok ? r.foto : ''; }); });
-    let ms = 8000;
+    let ms = 8000, go = true;
     try {
       if (!(spin.duration > 0)) await new Promise(ok => { spin.addEventListener('loadedmetadata', ok, { once: true }); spin.addEventListener('error', ok, { once: true }); setTimeout(ok, 1500); });
       if (spin.duration > 0 && isFinite(spin.duration)) ms = Math.min(30000, spin.duration * 1000);
       spin.currentTime = 0; spin.loop = false; await spin.play();
-    } catch (e) { ms = 5000; }
+    } catch (e) {
+      if (e && e.name === 'NotAllowedError') {   // pelayar menyekat bunyi: tunggu satu ketikan
+        rw.insertAdjacentHTML('beforeend', '<button class="btn" id="tapgo">▶ Ketik untuk mula</button>');
+        await new Promise(ok => { $('#tapgo').onclick = ok; }); const tb = $('#tapgo'); if (tb) tb.remove();
+        try { spin.currentTime = 0; await spin.play(); } catch (e2) { ms = 5000; }
+      } else ms = 5000;
+    }
     const t = every(() => { const e = $('#sn'); if (e && names.length) e.textContent = names[Math.floor(Math.random() * names.length)]; }, 90);
     await sleep(ms);
     clearInterval(t); try { spin.pause(); } catch (e) { }
@@ -3770,7 +3733,7 @@ async function pgResult(cat) {
     if (first && W.length && !now) { first = false; return suspense(R); }
     if (k === key && $('#rt')) { $('#rt').innerHTML = tot; return; }
     if (busy) return; busy = true;
-    await Promise.all(W.filter(c => fotos[c.no] === undefined).map(async c => { const r = await api('foto', { no: c.no }); fotos[c.no] = r.ok ? r.foto : ''; }));
+    await Promise.all(W.filter(c => fotos[c.no] === undefined).map(async c => { let r = await api('foto', { no: c.no }); if (!(r.ok && r.foto)) { await sleep(1200); r = await api('foto', { no: c.no }); } fotos[c.no] = r.ok ? r.foto : ''; }));
     const was = key; key = k; busy = false;
     const rw = $('#rw'); if (!rw) return;
     rw.className = 'resw' + (W.length > 1 ? ' n' + W.length : '');
@@ -3791,13 +3754,14 @@ const pageOf = () => (new URLSearchParams(location.search).get('page') || 'dafta
 function leavePage() {
   EPOCH++;
   while (CLEAN.length) { try { CLEAN.pop()(); } catch (e) { } }
-  try { Snd.stopSfx(); Snd.spinMusic(false); if (Snd.on) Snd.toggle(); } catch (e) { }
+  try { Snd.onEnd = null; Snd.stopSfx(); Snd.spinMusic(false); } catch (e) { }
   document.querySelectorAll('.modal,.backdash').forEach(n => n.remove());
   document.body.className = ''; document.body.style.overflowY = ''; app.style.zoom = ''; app.innerHTML = '';
   window.scrollTo(0, 0);
 }
 function runPage() {
   const f = ROUTES[pageOf()] || pgDaftar;
+  if (f === pgDashboard && document.fullscreenElement) { try { document.exitFullscreen(); } catch (e) { } }
   Promise.resolve().then(f).catch(e => { console.error(e); app.innerHTML = `<section class="card"><h2>Ralat</h2><p>${esc(e.message || e)}</p></section>`; });
 }
 function navigate(href, push) {
