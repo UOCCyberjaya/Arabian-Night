@@ -151,47 +151,35 @@ input::placeholder{color:rgba(255,246,221,.4)}
 .cand.sel::after{content:"✓";margin-left:auto;color:var(--gold);font-weight:900;font-size:1.3rem}
 .clist{max-height:340px;overflow:auto;padding-right:4px}
 
-/* poster */
-.posters{display:grid;grid-template-columns:1fr;gap:18px}
-@media(min-width:760px){.posters{grid-template-columns:1fr 1fr}}
+/* halaman QR (skrin LED, muat satu skrin tanpa skrol) */
 .qrcard{text-align:center}
-.qrbox{display:inline-block;background:#fff6dd;padding:14px;border-radius:18px;border:4px solid var(--gold);margin:8px 0 10px;box-shadow:0 0 30px rgba(242,193,78,.4)}
-.qrbox img,.qrbox canvas{display:block}
-.qrurl{font-size:.7rem;opacity:.6;word-break:break-all}
-.qrcard h2{font-size:1.5rem;letter-spacing:.08em;margin-bottom:4px}
-.qrcard .qrsub{font-family:var(--body);font-size:1.05rem;line-height:1.5;opacity:.95;margin:0 0 10px}
+.qrbox{display:inline-block;background:#fff6dd;padding:14px;border-radius:18px;border:4px solid var(--gold);box-shadow:0 0 30px rgba(242,193,78,.4)}
+.qrbox svg{display:block}
 .qrcard .qrsub b{color:var(--gold)}
-.qrbox svg{width:min(66vw,280px)!important;height:auto!important}
-.qrfoot{margin-top:6px;font-size:.8rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);opacity:.85}
-@media print{
-  #bg canvas,.noprint{display:none!important}
-  @page{size:A4;margin:0}
-  html,body{width:210mm!important;height:297mm!important;min-height:0!important;margin:0!important;overflow:hidden!important;background:#2b1760!important}
-  body.qrp #app{width:210mm!important;max-width:none!important;height:297mm!important;min-height:0!important;padding:0 14mm!important;display:flex;flex-direction:column;justify-content:center;align-items:center;animation:none!important}
-  body.qrp .lanterns,body.qrp #moon{display:none!important}
-  body.qrp .hero{margin:0 0 8mm!important}
-  body.qrp .info{margin-top:6mm!important}
-  body.qrp .qrbox svg{width:11cm!important}
-  body.qrp .qrcard h2{font-size:2rem}body.qrp .qrcard .qrsub{font-size:1.3rem}
-}
-/* halaman QR: muat satu skrin */
-body.qrp #app{padding:14px 14px 14px!important;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:center;align-items:center}
-body.qrp .lanterns,body.qrp #moon{display:none}
-body.qrp .hero{margin:0 0 8px!important;padding:0!important}
-body.qrp .hero .title{font-size:clamp(1.9rem,6vh,3rem)!important;margin:0!important}
-body.qrp .hero .sub{margin:2px 0 6px!important}
-body.qrp .hero .org{margin:0!important}
-body.qrp .hero .oline{display:none}
-body.qrp .hero .org1,body.qrp .hero .org2{margin:2px 0!important}
-body.qrp .hero .info{display:none}
-body.qrp .qrcard{padding:16px 22px 18px!important}
-body.qrp .qrcard h2{font-size:clamp(1.1rem,3.4vh,1.5rem)!important}
-body.qrp .qrcard .qrsub{font-size:clamp(.85rem,2.4vh,1.05rem);margin:0 0 6px}
-body.qrp .qrbox{margin:4px 0 0;padding:10px}
-body.qrp .qrbox svg{width:min(62vw,40vh,300px)!important}
-body.qrp .qrbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
-@media print{body.qrp .hero .info{display:grid!important}body.qrp .hero .oline{display:flex!important}body.qrp .hero .title{font-size:4rem!important}body.qrp .hero .org1{font-size:1.7rem!important}body.qrp .qrcard{padding:10mm 14mm!important}}
-}
+@media print{#bg canvas,.noprint{display:none!important}}
+body.qrp{overflow:hidden;height:100dvh}
+body.qrp #app{max-width:none!important;width:100%;height:100dvh;min-height:0;padding:2vh 2vw!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6vh;animation:none}
+body.qrp #carpet{display:none!important}
+body.qrp .hero{margin:0!important;padding:0!important}
+body.qrp .hero .title{font-size:min(7.4vh,8vw)!important;margin:0!important;line-height:1.05}
+body.qrp .hero .sub{font-size:min(2vh,2.6vw)!important;margin:.5vh 0 0!important}
+body.qrp .hero .oline,body.qrp .hero .info{display:none!important}
+body.qrp .hero .org{margin:1vh auto 0!important;max-width:none}
+body.qrp .hero .org1{font-size:min(3vh,4.4vw)!important;margin:0!important}
+body.qrp .hero .org2{font-size:min(2.5vh,3.6vw)!important;margin:.2vh 0 0!important}
+body.qrp .qrcard{margin:0!important;padding:2vh 3.4vh 2.4vh!important;border-radius:3vh}
+body.qrp .qrcard h2{font-size:min(4vh,6.4vw)!important;margin:0 0 .6vh!important}
+body.qrp .qrsub{font-size:min(2.6vh,4.2vw);line-height:1.35;margin:0 0 1.2vh}
+body.qrp .qrbox{margin:0;padding:1.5vh;border-radius:2vh;border-width:.5vh}
+body.qrp .qrbox svg{width:min(47vh,72vw)!important;height:auto!important}
+body.qrp .vcount{font-size:min(2.4vh,4vw);color:var(--gold2);min-height:1.2em;letter-spacing:.08em}
+body.qrp .vcount b{font-family:var(--disp);color:var(--gold);font-size:1.25em}
+/* butang halaman berikut / sebelum (separa lutsinar supaya tidak mengganggu skrin LED) */
+.flownav{position:fixed;top:10px;right:10px;z-index:60;display:flex;gap:6px;opacity:.25;transition:opacity .2s}
+.flownav:hover,.flownav:focus-within{opacity:1}
+@media (hover:none){.flownav{opacity:.6}}
+.flownav .ib,.tools .ib{text-decoration:none;font-size:1.15rem;line-height:1}
+.ib.nx.ready{background:var(--gold);color:#2a1659;animation:gopulse 1.6s ease-in-out infinite}
 
 /* dashboard */
 .tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
@@ -211,9 +199,10 @@ td select{padding:6px 8px;font-size:.8rem;border-radius:10px}
 .nav{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:0 0 6px}
 .demo{position:fixed;top:0;left:0;right:0;z-index:50;background:var(--rose);color:#fff;text-align:center;font-size:.72rem;padding:4px 8px;font-weight:700;letter-spacing:.5px}
 
-/* pentas cabutan */
-.stage-wrap{position:relative;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding:12px 16px 24px}
-.topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;z-index:5}
+/* pentas cabutan (muat satu skrin) */
+body.stage{overflow:hidden;height:100dvh}
+.stage-wrap{position:relative;height:100dvh;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:1.2vh 1.4vw}
+.topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;z-index:5;flex:none}
 .topbar .brand{font-family:var(--disp);font-weight:700;color:var(--gold);letter-spacing:2px;font-size:.9rem}
 .pills{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
 .pill{font-size:.72rem;padding:5px 11px;border-radius:999px;border:1px solid var(--line);opacity:.55;font-weight:700;letter-spacing:.5px}
@@ -222,28 +211,28 @@ td select{padding:6px 8px;font-size:.8rem;border-radius:10px}
 .tools{display:flex;gap:6px}
 .ib{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:rgba(8,5,30,.6);color:var(--gold);cursor:pointer;font-size:1rem;display:grid;place-items:center}
 .ib:hover{background:rgba(242,193,78,.2)}
-.mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;padding-top:10px}
-.sesi{font-family:var(--disp);letter-spacing:5px;color:var(--teal);font-size:clamp(.8rem,2.4vw,1.2rem);text-transform:uppercase}
-.cabno{font-family:var(--disp);font-size:clamp(.8rem,2.2vh,1.1rem);color:var(--gold2);letter-spacing:5px}
-.cabno b{display:inline;font-size:clamp(1.1rem,3.2vh,1.8rem);color:var(--gold);margin-left:10px;text-shadow:0 0 18px rgba(242,193,78,.6)}
-.prize{font-family:var(--ar);font-size:clamp(1.1rem,3vw,1.9rem);min-height:1.6em;color:var(--cream)}
-.reelwrap{position:relative;margin:8px 0;padding:6px clamp(34px,6vw,84px);border-radius:30px;border:3px solid var(--gold);background:radial-gradient(ellipse at 50% 0%,rgba(150,100,230,.5),rgba(20,12,56,.96) 72%);box-shadow:0 0 80px rgba(242,193,78,.5),0 0 0 6px rgba(242,193,78,.12),inset 0 0 44px rgba(242,193,78,.2),inset 0 0 0 6px rgba(20,12,56,.92),inset 0 0 0 8px rgba(242,193,78,.55)}
+.mid{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;text-align:center;gap:.4vh;padding:0}
+.sesi{font-family:var(--disp);letter-spacing:5px;color:var(--teal);font-size:clamp(.7rem,min(1.7vw,2.5vh),1.2rem);text-transform:uppercase}
+.cabno{font-family:var(--disp);font-size:clamp(.75rem,2vh,1.1rem);color:var(--gold2);letter-spacing:5px}
+.cabno b{display:inline;font-size:clamp(1rem,3vh,1.8rem);color:var(--gold);margin-left:10px;text-shadow:0 0 18px rgba(242,193,78,.6)}
+.prize{font-family:var(--ar);font-size:clamp(1rem,3.2vh,1.9rem);min-height:1.3em;color:var(--cream)}
+.reelwrap{position:relative;margin:0;padding:0 clamp(30px,5vw,80px);border-radius:30px;border:3px solid var(--gold);background:radial-gradient(ellipse at 50% 0%,rgba(150,100,230,.5),rgba(20,12,56,.96) 72%);box-shadow:0 0 80px rgba(242,193,78,.5),0 0 0 6px rgba(242,193,78,.12),inset 0 0 44px rgba(242,193,78,.2),inset 0 0 0 6px rgba(20,12,56,.92),inset 0 0 0 8px rgba(242,193,78,.55)}
 .reelwrap::before,.reelwrap::after{content:'✦';position:absolute;top:50%;transform:translateY(-50%);font-size:clamp(1.1rem,3.2vh,2rem);color:var(--gold);text-shadow:0 0 14px rgba(242,193,78,.9)}
 .reelwrap::before{left:clamp(8px,1.6vw,22px)}.reelwrap::after{right:clamp(8px,1.6vw,22px)}
-.reel{font-family:var(--disp);font-weight:900;font-size:clamp(5.5rem,min(26vw,30vh),16rem);line-height:1.02;min-width:2ch;background:linear-gradient(180deg,#fff6c9 0%,#ffd75e 45%,#d9962b 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 22px rgba(242,193,78,.75));font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.reel{font-family:var(--disp);font-weight:900;font-size:clamp(4rem,min(24vw,24vh),15rem);line-height:1.02;min-width:2ch;background:linear-gradient(180deg,#fff6c9 0%,#ffd75e 45%,#d9962b 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 22px rgba(242,193,78,.75));font-variant-numeric:tabular-nums;letter-spacing:.02em}
 .reel.spin{opacity:.92}
 .reel.land{animation:land .7s ease-out}
 @keyframes land{0%{transform:scale(1.5)}60%{transform:scale(.95)}100%{transform:scale(1)}}
-.winner{min-height:100px;opacity:0;transform:translateY(24px);transition:.6s}
+.winner{min-height:clamp(90px,23vh,260px);opacity:0;transform:translateY(24px);transition:.6s}
 .winner.show{opacity:1;transform:none}
-.winner .wn{font-family:var(--disp);font-weight:700;font-size:clamp(1.3rem,4.4vw,2.8rem);color:#fff;text-shadow:0 0 22px rgba(199,125,255,.9)}
-.winner .wu{font-size:clamp(.95rem,2.2vw,1.4rem);color:var(--teal);margin-top:4px}
-.winner .wp{font-family:var(--ar);font-size:clamp(1.1rem,2.6vw,1.7rem);color:var(--gold2);margin-top:6px}
-.ctrl{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
-.go{font-size:clamp(1rem,2.4vw,1.4rem)!important;padding:18px 40px!important;animation:gopulse 1.8s ease-in-out infinite}
+.winner .wn{font-family:var(--disp);font-weight:700;font-size:clamp(1.2rem,min(4vw,5vh),2.8rem);color:#fff;text-shadow:0 0 22px rgba(199,125,255,.9);line-height:1.1}
+.winner .wu{font-size:clamp(.9rem,min(2.2vw,2.8vh),1.4rem);color:var(--teal);margin-top:.4vh}
+.winner .wp{font-family:var(--ar);font-size:clamp(1rem,min(2.6vw,3.2vh),1.7rem);color:var(--gold2);margin-top:.6vh}
+.ctrl{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:0}
+.go{font-size:clamp(1rem,min(2.4vw,3vh),1.4rem)!important;padding:clamp(10px,2vh,18px) clamp(26px,4vw,40px)!important;animation:gopulse 1.8s ease-in-out infinite}
 .go:disabled{animation:none}
 @keyframes gopulse{0%,100%{box-shadow:0 0 18px rgba(242,193,78,.45)}50%{box-shadow:0 0 38px rgba(242,193,78,.95)}}
-.note{margin-top:10px;font-family:var(--ar);font-size:1.2rem;color:var(--gold2)}
+.note{margin-top:0;font-family:var(--ar);font-size:clamp(.95rem,2.4vh,1.2rem);color:var(--gold2);min-height:1.2em}
 .drawer{position:fixed;top:0;right:0;bottom:0;width:min(380px,92vw);z-index:60;background:rgba(10,6,34,.96);border-left:2px solid var(--gold);padding:18px;overflow:auto;transform:translateX(105%);transition:.35s}
 .drawer.open{transform:none}
 .wl{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid rgba(242,193,78,.18);font-size:.86rem}
@@ -304,11 +293,41 @@ body.fit .gopt span{padding:9px 6px}
 .selfie{width:92px;height:92px;border-radius:50%;border:2px dashed var(--gold);background:rgba(8,5,30,.45);color:var(--gold2);display:grid;place-items:center;overflow:hidden;cursor:pointer;margin-top:6px;padding:0}
 .selfie span{display:grid;justify-items:center;font-size:1.5rem;line-height:1.1}.selfie small{font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
 .selfie img{width:100%;height:100%;object-fit:cover;display:block}
-.winner.show{display:flex;align-items:center;justify-content:center;gap:clamp(14px,2.4vw,32px);flex-wrap:wrap}
+.winner.show{display:flex;align-items:center;justify-content:center;gap:clamp(14px,2.4vw,32px)}
 .winner .wt{text-align:left;max-width:min(70vw,780px)}
-@media(max-width:700px){.winner .wt{text-align:center}}
-.winner .wph{flex:none;width:clamp(120px,25vh,280px);height:clamp(120px,25vh,280px);border-radius:50%;object-fit:cover;border:4px solid var(--gold);box-shadow:0 0 34px rgba(242,193,78,.7);display:block;background:rgba(8,5,30,.6)}
+.winner .wph{flex:none;width:clamp(90px,21vh,240px);height:clamp(90px,21vh,240px);border-radius:50%;object-fit:cover;border:4px solid var(--gold);box-shadow:0 0 34px rgba(242,193,78,.7);display:block;background:rgba(8,5,30,.6)}
 .winner .wph.ini{display:grid;place-items:center;font-family:var(--disp);font-size:3rem;color:var(--gold)}
+@media(max-width:700px){.winner.show{flex-wrap:wrap}.winner .wt{text-align:center}.winner .wph{width:14vh;height:14vh}}
+
+/* halaman undi (telefon) */
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 8px}
+.tabs button{font:inherit;font-weight:800;font-size:.9rem;color:var(--gold);background:rgba(8,5,30,.55);border:1.5px solid var(--line);border-radius:14px;padding:11px 6px;cursor:pointer;transition:background .15s,color .15s}
+.tabs button.on{background:var(--gold);color:#2a1659;border-color:var(--gold)}
+.tabs button i{font-style:normal;margin-left:4px}
+.cand .badge{font-size:1rem}
+.votebar{position:sticky;bottom:0;margin:14px -4px -6px;padding:10px 4px 6px;background:linear-gradient(180deg,rgba(35,19,80,0),rgba(35,19,80,.96) 28%)}
+.votebar .sum{font-size:.82rem;text-align:center;opacity:.9;margin-bottom:8px;min-height:1.2em}
+.votebar .btn.block{margin-top:0}
+.sv{font-size:.8rem;margin-top:10px;opacity:.8}
+
+/* halaman keputusan Queen / Sultan (skrin LED) */
+body.res{overflow:hidden;height:100dvh}
+body.res #app{max-width:none!important;padding:0!important;height:100dvh;animation:none}
+body.res #carpet{display:none!important}
+.resw{height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2vh;text-align:center;padding:2vh 3vw;--ps:min(34vh,56vw)}
+.resw.n2{--ps:min(30vh,30vw)}.resw.n3{--ps:min(25vh,24vw)}
+.rcrown{font-size:min(9vh,12vw);line-height:1;animation:floaty 3s ease-in-out infinite;filter:drop-shadow(0 0 25px rgba(242,193,78,.8))}
+.rtitle{font-family:var(--disp);font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:min(8vh,9vw);line-height:1.05;background:linear-gradient(180deg,#fff6c9,#ffd75e 50%,#d9962b);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 20px rgba(242,193,78,.6))}
+.rrow{display:flex;gap:4vw;justify-content:center;align-items:flex-start}
+.rw{display:flex;flex-direction:column;align-items:center;gap:.8vh;max-width:44vw}
+.rw .ph{width:var(--ps);height:var(--ps);border-radius:50%;object-fit:cover;border:.8vh solid var(--gold);box-shadow:0 0 5vh rgba(242,193,78,.75);background:rgba(8,5,30,.6);display:grid;place-items:center;font-family:var(--disp);font-size:calc(var(--ps)/3);color:var(--gold)}
+.rw .nm{font-family:var(--disp);font-weight:700;font-size:min(5.2vh,5.6vw);color:#fff;text-shadow:0 0 22px rgba(199,125,255,.9);line-height:1.1}
+.resw.n2 .rw .nm,.resw.n3 .rw .nm{font-size:min(4vh,3.6vw)}
+.rw .un{font-size:min(3vh,3.6vw);color:var(--teal)}
+.rw .rv{font-family:var(--disp);color:var(--gold2);font-size:min(3.2vh,3.4vw);letter-spacing:.12em;text-transform:uppercase}
+.rw .rv b{font-size:1.9em;color:var(--gold);text-shadow:0 0 18px rgba(242,193,78,.6);margin-right:.25em}
+.rtot{font-size:min(2.4vh,3.2vw);opacity:.75;letter-spacing:.1em}
+.rwait{font-family:var(--ar);font-size:min(4vh,5vw);color:var(--gold2)}
 a,button,.btn,select,label{touch-action:manipulation}
 .btn:active:not(:disabled){transform:scale(.97)}
 .btn:disabled{opacity:.6;cursor:wait}
@@ -2637,8 +2656,8 @@ const SFX_FILES = {
   menang: 'menang.mp3',   // setiap pemenang biasa (cabutan No. 59 hingga 4)
   p3: 'Award3.mp3',       // Podium No. 3
   p2: 'award2.mp3',       // Podium No. 2
-  p1: 'first.mp3',        // Podium No. 1
-  grand: 'grand.mp3'      // pembukaan Hadiah Utama (bermula semasa cabut No. 3)
+  p1: 'grand.mp3',        // Podium No. 1 (Champions Anthem – paling gempak)
+  grand: 'Aladin.mp3'     // pembukaan Hadiah Utama (bermula semasa cabut No. 3)
 };
 // Lagu semasa spin (main bila SPIN ditekan, berhenti bila nombor keluar): letak fail ini dalam folder yang sama. Jika tiada, muzik Arab automatik digunakan.
 const BGM_FILE = 'spin.mp3';
@@ -2664,7 +2683,7 @@ function defaultConfig() {
     prizes: { '3': 'Hadiah Podium No. 3', '2': 'Hadiah Podium No. 2', '1': 'Hadiah Podium No. 1' }
   };
 }
-function newStore() { return { peserta: [], cabutan: [], undi: [], config: defaultConfig() }; }
+function newStore() { return { peserta: [], cabutan: [], undi: [], config: defaultConfig(), holds: {} }; }
 
 function assignedMap(store) {
   var m = {};
@@ -2751,6 +2770,19 @@ function checkFoto(f, need) {
   if (f.indexOf('data:image/jpeg;base64,') !== 0 || f.length > 46000) return 'Gambar selfie tidak sah atau terlalu besar. Cuba ambil semula.';
   return '';
 }
+// Nombor "tempah" sementara (5 minit): peserta nampak nombor serta-merta semasa menekan Daftar; pendaftaran sebenar menyusul di latar.
+var HOLD_MS = 5 * 60 * 1000;
+function holdsOf(store) {
+  var H = store.holds || (store.holds = {}), now = Date.now();
+  Object.keys(H).forEach(function (k) { if (now - H[k].t > HOLD_MS) delete H[k]; });
+  return H;
+}
+function freeNos(store, avoidHeld) {
+  var used = {}, H = holdsOf(store), a = [], b = [];
+  store.peserta.forEach(function (p) { used[p.no] = 1; });
+  for (var n = 1; n <= store.config.total; n++) { if (!used[n]) { b.push(n); if (!H[n]) a.push(n); } }
+  return avoidHeld && a.length ? a : b;
+}
 function doRegister(store, req, env, needFoto) {
   var nama = clean(req.nama).replace(/^[=+\-@]+/, '').toUpperCase().slice(0, 80);
   var unit = clean(req.unit);
@@ -2764,14 +2796,27 @@ function doRegister(store, req, env, needFoto) {
   if (found) return { ok: true, existing: true, no: found.no, nama: found.nama, unit: found.unit };
   var total = store.config.total;
   if (store.peserta.length >= total) return err('Maaf, kesemua ' + total + ' nombor telah diagihkan.', 'penuh');
-  var used = {}, free = [];
-  store.peserta.forEach(function (p) { used[p.no] = 1; });
-  for (var n = 1; n <= total; n++) { if (!used[n]) free.push(n); }
-  var no = free[Math.floor(env.random() * free.length)];
+  var H = holdsOf(store), tok = clean(req.tok).slice(0, 24), rn = toInt(req.rno, 0), no = 0;
+  var free = freeNos(store, false);
+  if (rn && tok && H[rn] && H[rn].k === tok && free.indexOf(rn) >= 0) no = rn;
+  else { var pool = freeNos(store, true); no = pool[Math.floor(env.random() * pool.length)]; }
+  if (tok) Object.keys(H).forEach(function (k) { if (H[k].k === tok) delete H[k]; });
+  delete H[no];
   var rec = { no: no, nama: nama, unit: unit, masa: env.now(), calon: '', jantina: jantina };
   store.peserta.push(rec);
   if (req.foto && env.putFoto) env.putFoto(no, req.foto);
   return { ok: true, existing: false, no: no, nama: nama, unit: unit, jumlah: store.peserta.length, _dirty: ['peserta'], _added: { peserta: rec } };
+}
+
+function tallyOf(store, cat, field) {
+  var cnt = {};
+  store.undi.forEach(function (u) { if (u[field]) cnt[u[field]] = (cnt[u[field]] || 0) + 1; });
+  return candidatesOf(store, cat).map(function (c) { c.undi = cnt[c.no] || 0; return c; })
+    .sort(function (x, y) { return y.undi - x.undi || x.no - y.no; });
+}
+function topOf(store) {
+  function t(cat, f) { var l = tallyOf(store, cat, f); return l.length && l[0].undi > 0 ? l[0] : null; }
+  return { raja: t('raja', 'raja'), permaisuri: t('permaisuri', 'permaisuri') };
 }
 
 function summary(store) {
@@ -2784,7 +2829,7 @@ function summary(store) {
 function handle(store, req, env) {
   migrateConfig(store);
   var a = req.action, cfg = store.config;
-  var open = { info: 1, voteInfo: 1, register: 1, vote: 1, ping: 1, cek: 1, setFoto: 1 };
+  var open = { info: 1, voteInfo: 1, register: 1, reserve: 1, vote: 1, ping: 1, cek: 1, setFoto: 1 };
   if (!open[a] && String(req.pin == null ? '' : req.pin) !== String(env.pin)) return err('PIN tidak betul.', 'pin');
 
   switch (a) {
@@ -2809,6 +2854,17 @@ function handle(store, req, env) {
     case 'info':
       return { ok: true, total: cfg.total, registered: store.peserta.length, voteOpen: !!cfg.voteOpen, units: UNITS };
 
+    case 'reserve': {
+      if (store.peserta.length >= cfg.total) return err('Maaf, kesemua ' + cfg.total + ' nombor telah diagihkan.', 'penuh');
+      var RH = holdsOf(store), rt = clean(req.tok).slice(0, 24), fr = freeNos(store, false), hit = 0;
+      if (rt) Object.keys(RH).forEach(function (k) { if (RH[k].k === rt && fr.indexOf(+k) >= 0) hit = +k; });
+      if (hit) { RH[hit].t = Date.now(); return { ok: true, no: hit, tok: rt }; }
+      var rp = freeNos(store, true), rno = rp[Math.floor(env.random() * rp.length)];
+      var ntok = rt || (Math.floor(env.random() * 1e9).toString(36) + Date.now().toString(36)).slice(0, 16);
+      RH[rno] = { t: Date.now(), k: ntok };
+      return { ok: true, no: rno, tok: ntok };
+    }
+
     case 'register': return doRegister(store, req, env, !req.lateFoto);
 
     case 'adminAdd': return doRegister(store, req, env);
@@ -2819,7 +2875,7 @@ function handle(store, req, env) {
       return {
         ok: true, peserta: store.peserta.slice().sort(function (x, y) { return x.no - y.no; }),
         cabutan: store.cabutan, undiCount: store.undi.length, config: cfg, units: UNITS, byUnit: summary(store),
-        next: nextCabutan(store)
+        next: nextCabutan(store), top: topOf(store)
       };
 
     case 'adminDelete': {
@@ -2889,41 +2945,34 @@ function handle(store, req, env) {
 
     case 'vote': {
       if (!cfg.voteOpen) return err('Undian belum dibuka atau telah ditutup.', 'tutup');
+      var dev = clean(req.dev).slice(0, 40);
+      if (dev.length < 8) return err('Peranti tidak sah. Muat semula halaman dan cuba lagi.');
       var vn = toInt(req.voterNo, 0);
-      var voter = store.peserta.filter(function (p) { return p.no === vn && norm(p.nama) === norm(req.voterNama); })[0];
-      if (!voter) return err('No. bertuah dan nama tidak sepadan dengan rekod pendaftaran.');
-      if (store.undi.some(function (u) { return u.voterNo === vn; })) return err('Anda telah mengundi. Terima kasih!', 'dup');
+      if (store.undi.some(function (u) { return u.voterNama === dev || (vn && u.voterNo === vn); })) return err('Anda telah mengundi. Terima kasih!', 'dup');
       var r = toInt(req.raja, 0), q = toInt(req.permaisuri, 0);
       if (!r && !q) return err('Sila pilih sekurang-kurangnya satu calon.');
       if (r) {
-        if (r === vn) return err('Tidak boleh mengundi diri sendiri.');
+        if (vn && r === vn) return err('Tidak boleh mengundi diri sendiri.');
         if (!candidatesOf(store, 'raja').some(function (c) { return c.no === r; })) return err('Calon Sultan tidak sah.');
       }
       if (q) {
-        if (q === vn) return err('Tidak boleh mengundi diri sendiri.');
+        if (vn && q === vn) return err('Tidak boleh mengundi diri sendiri.');
         if (!candidatesOf(store, 'permaisuri').some(function (c) { return c.no === q; })) return err('Calon Queen tidak sah.');
       }
-      var urec = { masa: env.now(), voterNo: vn, voterNama: voter.nama, raja: r, permaisuri: q };
+      var urec = { masa: env.now(), voterNo: vn, voterNama: dev, raja: r, permaisuri: q };
       store.undi.push(urec);
       return { ok: true, _dirty: ['undi'], _added: { undi: urec } };
     }
 
-    case 'results': {
-      function tally(cat, field) {
-        var cnt = {};
-        store.undi.forEach(function (u) { if (u[field]) cnt[u[field]] = (cnt[u[field]] || 0) + 1; });
-        return candidatesOf(store, cat).map(function (c) { c.undi = cnt[c.no] || 0; return c; })
-          .sort(function (x, y) { return y.undi - x.undi || x.no - y.no; });
-      }
-      return { ok: true, voteOpen: !!cfg.voteOpen, pengundi: store.undi.length, raja: tally('raja', 'raja'), permaisuri: tally('permaisuri', 'permaisuri') };
-    }
+    case 'results':
+      return { ok: true, voteOpen: !!cfg.voteOpen, pengundi: store.undi.length, raja: tallyOf(store, 'raja', 'raja'), permaisuri: tallyOf(store, 'permaisuri', 'permaisuri') };
 
     case 'reset': {
       var what = req.what;
       if (what === 'cabutan') { store.cabutan = []; return { ok: true, _dirty: ['cabutan'] }; }
       if (what === 'undi') { store.undi = []; return { ok: true, _dirty: ['undi'] }; }
       if (what === 'semua') {
-        store.peserta = []; store.cabutan = []; store.undi = []; store.config.voteOpen = false;
+        store.peserta = []; store.cabutan = []; store.undi = []; store.holds = {}; store.config.voteOpen = false;
         if (env.clearFoto) env.clearFoto();
         return { ok: true, _dirty: ['peserta', 'cabutan', 'undi', 'config'] };
       }
@@ -2941,7 +2990,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const app = $('#app');
 const DEMO = !API_URL;
 // ?baru=1 : padam ingatan pendaftaran/undi pada peranti ini (untuk ujian atau peranti yang terlanjur imbas)
-try { if (new URLSearchParams(location.search).get('baru')) { Object.keys(localStorage).filter(k => k.indexOf('an_reg') === 0 || k.indexOf('an_voted_') === 0).forEach(k => localStorage.removeItem(k)); const u = new URL(location.href); u.searchParams.delete('baru'); history.replaceState(null, '', u); } } catch (e) { }
+try { if (new URLSearchParams(location.search).get('baru')) { Object.keys(localStorage).filter(k => k.indexOf('an_reg') === 0 || k.indexOf('an_voted') === 0 || k.indexOf('an_dev') === 0 || k.indexOf('an_pend') === 0).forEach(k => localStorage.removeItem(k)); const u = new URL(location.href); u.searchParams.delete('baru'); history.replaceState(null, '', u); } } catch (e) { }
 const LS = {
   get(k, d) { try { const v = localStorage.getItem('an_' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem('an_' + k, JSON.stringify(v)); } catch (e) { } }
@@ -2987,7 +3036,7 @@ async function api(action, data) {
 async function _api(action, data) {
   const req = Object.assign({ action, pin: SS.get('pin') || '' }, data || {});
   const READ = ['info', 'voteInfo', 'adminList', 'drawState', 'results', 'ping', 'foto', 'cek'];
-  const RETRY = READ.concat(['register', 'vote', 'adminAdd', 'setConfig', 'setCalon', 'setFoto']);
+  const RETRY = READ.concat(['register', 'reserve', 'vote', 'adminAdd', 'setConfig', 'setCalon', 'setFoto']);
   if (DEMO) { await sleep(30); return JSON.parse(JSON.stringify(demoCall(req))); }
   const once = async () => {
     const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 25000);
@@ -3191,8 +3240,15 @@ function enableFit() {
 }
 function demoBanner() { if (DEMO && !$('.demo')) { const d = document.createElement('div'); d.className = 'demo noprint'; d.textContent = 'MOD DEMO — data disimpan dalam pelayar ini sahaja (belum disambung ke Google Sheet) · '; const b = document.createElement('a'); b.href = '#'; b.textContent = 'Set semula demo'; b.style.cssText = 'color:#fff;text-decoration:underline;font-weight:800'; b.onclick = e => { e.preventDefault(); if (!confirm('Padam semua data demo pada pelayar ini?')) return; try { Object.keys(localStorage).filter(k => k.indexOf('an_') === 0).forEach(k => localStorage.removeItem(k)); sessionStorage.clear(); } catch (x) { } location.reload(); }; d.appendChild(b); document.body.appendChild(d); } }
 function navLinks(cur) {
-  const L = [['dashboard', 'Dashboard'], ['cabutan', 'Cabutan Bertuah'], ['bestdress', 'Best Dress'], ['poster', 'QR Daftar'], ['posterundi', 'QR Best Dress'], ['daftar', 'Borang Daftar'], ['undi', 'Borang Undi']];
+  const L = [['dashboard', 'Dashboard'], ['poster', 'QR Daftar'], ['daftar', 'Borang Daftar'], ['cabutan', 'Cabutan Bertuah'], ['posterundi', 'QR Best Dress'], ['undi', 'Borang Undi'], ['queen', 'Keputusan Queen'], ['sultan', 'Keputusan Sultan']];
   return `<div class="nav noprint">${L.map(l => `<a class="btn ghost sm" href="${pageUrl(l[0])}" ${l[0] === cur ? 'style="background:rgba(242,193,78,.2)"' : ''}>${l[1]}</a>`).join('')}</div>`;
+}
+// Aliran majlis: QR Daftar → Cabutan → QR Best Dress → Keputusan Queen → Keputusan Sultan
+const FLOW = ['poster', 'cabutan', 'posterundi', 'queen', 'sultan'];
+const flowPrev = c => FLOW[FLOW.indexOf(c) - 1] || 'dashboard';
+const flowNext = c => FLOW[FLOW.indexOf(c) + 1] || 'dashboard';
+function flowNav(cur) {
+  return `<div class="flownav noprint"><a class="ib" href="${pageUrl(flowPrev(cur))}" title="Sebelumnya">‹</a><a class="ib" href="${pageUrl('dashboard')}" title="Dashboard">⌂</a><a class="ib nx ready" href="${pageUrl(flowNext(cur))}" title="Seterusnya">›</a></div>`;
 }
 function unitOptions() { return UNITS.map(u => `<option>${esc(u)}</option>`).join(''); }
 
@@ -3214,7 +3270,7 @@ async function needAdmin() {
   });
   return true;
 }
-function fmtTime(iso) { try { return new Date(iso).toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
+function fmtTime(iso) { const t = new Date(iso); if (isNaN(t)) return ''; const h = t.getHours(); return ((h % 12) || 12) + ':' + String(t.getMinutes()).padStart(2, '0') + ' ' + (h < 12 ? 'PG' : h < 14 ? 'TGH' : h < 19 ? 'PTG' : 'MLM'); }
 
 /* ============ HALAMAN: DAFTAR ============ */
 function shrinkPhoto(file) {
@@ -3237,16 +3293,26 @@ function shrinkPhoto(file) {
 async function pgDaftar() {
   document.body.classList.add('split-page', 'fit'); enableFit();
   buildBg(false);
-  // Halaman & borang dipaparkan SERTA-MERTA; maklumat kuota menyusul selepas pelayan menjawab.
+  // Halaman & borang dipaparkan SERTA-MERTA; nombor bertuah ditempah lebih awal supaya terus keluar bila Daftar ditekan.
   app.innerHTML = `<div class="split">${hero()}<div class="col"><section class="card arch" id="card"></section><div class="foot"><div class="oline"><i></i><b>✦</b><i></i></div><div class="f1">Kelab Bahagian Pengurusan</div><div class="f2">· SPP ·</div></div></div></div>`;
-  let info = null, timer = null;
+  let info = null, timer = null, resv = null, resvP = null, cur = null, shown = false, bgOn = false;
   const saved = DEMO ? null : LS.get('reg', null);
   if (saved) {
-    ticket(saved, true);
-    // Jika data sudah dipadam (cth. selepas ujian), buang tiket lama pada peranti ini dan papar borang baharu.
-    api('cek', { no: saved.no, nama: saved.nama }).then(r => { if (r.ok && !r.ada) { try { localStorage.removeItem('an_reg'); } catch (e) { } form(); api('info').then(x => { if (x.ok) { info = x; quota(); } }); } });
+    const pr = LS.get('pendreg', null);
+    cur = saved; shown = true; ticket(saved, !pr, !!pr);
+    if (pr) bgRegister();
+    else {
+      // Jika data sudah dipadam (cth. selepas ujian), buang tiket lama pada peranti ini dan papar borang baharu.
+      api('cek', { no: saved.no, nama: saved.nama }).then(r => { if (r.ok && !r.ada) { try { localStorage.removeItem('an_reg'); } catch (e) { } cur = null; shown = false; form(); api('info').then(x => { if (x.ok) { info = x; quota(); } }); } });
+    }
   } else form();
   api('info').then(r => { if (r.ok) { info = r; if (!LS.get('reg', null)) quota(); } });
+
+  function prime(renew) {
+    if (resvP && !renew) return;
+    resvP = api('reserve', { tok: SS.get('rtok') || '' }).then(r => { if (r.ok) { resv = { no: r.no, tok: r.tok }; SS.set('rtok', r.tok); } return r; });
+  }
+  every(() => { if ($('#f') && resv) prime(true); }, 120000);
 
   function quota() {
     const q = $('#quota'); if (!q || !info) return;
@@ -3269,7 +3335,7 @@ async function pgDaftar() {
       try { foto = await shrinkPhoto(f); $('#selfbtn').innerHTML = `<img src="${foto}" alt="">`; $('#m').innerHTML = ''; }
       catch (er) { foto = ''; $('#m').innerHTML = '<div class="msg err">Gambar tidak dapat dibaca. Cuba ambil semula.</div>'; }
     };
-    quota();
+    quota(); prime();
     $('#f').onsubmit = async e => {
       e.preventDefault();
       const nama = $('#nama').value.trim(), unit = $('#unit').value, jantina = ($('input[name=jt]:checked') || {}).value || '';
@@ -3278,16 +3344,52 @@ async function pgDaftar() {
       if (!jantina) return $('#m').innerHTML = '<div class="msg err">Sila pilih jantina anda.</div>';
       if (!foto) return $('#m').innerHTML = '<div class="msg err">Selfie wajib. Sila tekan butang kamera untuk ambil gambar.</div>';
       pending(nama, unit);
-      // Daftar dahulu (cepat, tanpa gambar); selfie dimuat naik di latar selepas nombor keluar.
+      const R = resv;
+      if (R) {
+        // Nombor sudah ditempah: tunjuk SERTA-MERTA (animasi singkat), pendaftaran sebenar dihantar di latar belakang.
+        const NM = nama.replace(/\s+/g, ' ').trim().toUpperCase();
+        cur = { no: R.no, nama: NM, unit }; shown = false; resv = null; resvP = null;
+        LS.set('pendreg', { nama, unit, jantina, no: R.no, tok: R.tok });
+        LS.set('pendfoto', { no: R.no, nama: NM, foto });
+        LS.set('reg', cur);
+        bgRegister();
+        await sleep(900); clearInterval(timer);
+        if (!cur) return;           // pendaftaran ditolak (borang dipaparkan semula)
+        shown = true; ticket(cur, false, !!LS.get('pendreg', null));
+        return;
+      }
+      // Tiada tempahan (cth. talian perlahan): daftar terus & tunggu jawapan pelayan.
       const [r] = await Promise.all([api('register', { nama, unit, jantina, lateFoto: true }), sleep(800)]);
       clearInterval(timer);
       if (r.ok) {
         if (!DEMO) LS.set('reg', { no: r.no, nama: r.nama, unit: r.unit });
-        ticket(r, r.existing);
+        cur = r; shown = true; ticket(r, r.existing);
         if (!r.existing) { LS.set('pendfoto', { no: r.no, nama: r.nama, foto }); sendFoto(); }
       }
       else form({ nama, unit, jantina, foto, error: r.error });
     };
+  }
+  async function bgRegister() {
+    if (bgOn) return; bgOn = true;
+    for (let t = 0; t < 60; t++) {
+      const p = LS.get('pendreg', null); if (!p) break;
+      const r = await api('register', { nama: p.nama, unit: p.unit, jantina: p.jantina, lateFoto: true, rno: p.no, tok: p.tok });
+      if (r.ok) {
+        try { localStorage.removeItem('an_pendreg'); } catch (e) { }
+        cur = { no: r.no, nama: r.nama, unit: r.unit }; LS.set('reg', cur);
+        const pf = LS.get('pendfoto', null); if (pf) { pf.no = r.no; pf.nama = r.nama; LS.set('pendfoto', pf); }
+        if (shown) { const sv = $('#sv'); if (sv && r.no === p.no) sv.textContent = '✓ Pendaftaran disimpan'; else ticket(cur, r.existing, false); }
+        sendFoto(); break;
+      }
+      if (r.code && r.code !== 'net' && r.code !== 'server') {   // ditolak oleh pelayan (bukan masalah sambungan)
+        const pf = LS.get('pendfoto', null) || {};
+        ['an_pendreg', 'an_pendfoto', 'an_reg'].forEach(k => { try { localStorage.removeItem(k); } catch (e) { } });
+        clearInterval(timer); cur = null; shown = false; resv = null; resvP = null;
+        form({ nama: p.nama, unit: p.unit, jantina: p.jantina, foto: pf.foto || '', error: r.error }); break;
+      }
+      await sleep(2000);
+    }
+    bgOn = false;
   }
   async function sendFoto() {
     for (let t = 0; t < 6; t++) {
@@ -3298,78 +3400,136 @@ async function pgDaftar() {
       await sleep(1500 * (t + 1));
     }
   }
-  if (LS.get('pendfoto', null)) sendFoto();
+  if (LS.get('pendfoto', null) && !LS.get('pendreg', null)) sendFoto();
   function pending(nama, unit) {
     $('#card').innerHTML = `<div class="ticket"><div class="hi">Menjana nombor bertuah anda…</div><div class="nm">${esc(nama.toUpperCase())}</div><div class="un">${esc(unit)}</div>
     <div class="lab">No. Cabutan Bertuah Anda</div><div class="bignum spinning" id="pn">00</div></div>`;
-    let last = 0; timer = every(() => { let x; do { x = 1 + Math.floor(Math.random() * 60); } while (x === last); last = x; const el = $('#pn'); if (el) el.textContent = String(x).padStart(2, '0'); }, 75);
+    let last = 0; clearInterval(timer); timer = every(() => { let x; do { x = 1 + Math.floor(Math.random() * 60); } while (x === last); last = x; const el = $('#pn'); if (el) el.textContent = String(x).padStart(2, '0'); }, 60);
   }
-  function ticket(r, again) {
+  function ticket(r, again, pend) {
     const no = String(r.no).padStart(2, '0');
     $('#card').innerHTML = `<div class="ticket"><div class="hi">${again ? 'Anda telah berdaftar' : 'Tahniah & Selamat Datang!'}</div><div class="nm">${esc(r.nama)}</div><div class="un">${esc(r.unit)}</div>
     <div class="lab">No. Cabutan Bertuah Anda</div><div class="bignum">${no}</div>
-    <div class="dash"></div><p style="font-size:.92rem;line-height:1.5">Semua peserta akan membawa pulang hadiah! 🎁<br>Sila <b>tangkap skrin</b> nombor ini dan tunggu sesi cabutan bertuah.</p></div>`;
+    <div class="dash"></div><p style="font-size:.92rem;line-height:1.5">Semua peserta akan membawa pulang hadiah! 🎁<br>Sila <b>tangkap skrin</b> nombor ini dan tunggu sesi cabutan bertuah.</p><div class="sv center" id="sv">${pend ? '⏳ Menyimpan pendaftaran…' : ''}</div></div>`;
     if (!again) setTimeout(() => FX.burst(innerWidth / 2, innerHeight * .4, 110, 10), 300);
   }
 }
 
 /* ============ HALAMAN: UNDI ============ */
 async function pgUndi() {
-  document.body.classList.add('fit'); enableFit(); buildBg(false);
+  document.body.classList.add('fit'); buildBg(false);
   app.innerHTML = `${hero()}<section class="card" id="card"><div class="center small">Memuatkan…</div></section>`;
-  const [vi] = await Promise.all([api('voteInfo')]);
-  let reg = LS.get('reg', null);
-  const done = reg && LS.get('voted_' + reg.no, false);
+  const vi = await api('voteInfo');
+  const reg = LS.get('reg', null), self = reg ? reg.no : 0;
+  let dev = LS.get('dev', '');
+  if (!dev) { dev = ((window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()).replace(/-/g, '').slice(0, 24); LS.set('dev', dev); }
+  const thanks = msg => { $('#card').innerHTML = `<div class="center"><div class="crown">♛</div><h2>${msg}</h2><p>Undi anda telah direkodkan.<br>Nantikan pengumuman <b>Sultan &amp; Queen of the Night</b>.</p></div>`; };
   if (!vi.ok) return $('#card').innerHTML = `<div class="msg err">${esc(vi.error)}</div>`;
-  if (!vi.voteOpen) return $('#card').innerHTML = `<h2>Undian Best Dress</h2><div class="center"><div class="crown">🌙</div><p>Undian <b>belum dibuka</b> atau telah ditutup.<br>Tunggu pengumuman daripada pengacara majlis.</p></div>`;
-  if (done) return $('#card').innerHTML = `<div class="center"><div class="crown">♛</div><h2>Terima kasih!</h2><p>Undi anda telah direkodkan. Nantikan pengumuman <b>Sultan &amp; Queen of the Night</b>.</p></div>`;
-  $('#card').innerHTML = `<h2>♛ Undian Best Dress ♛</h2><p class="small center">Pilih <b>Sultan of the Night</b> dan <b>Queen of the Night</b> berpakaian terbaik. Satu undi bagi setiap peserta.</p>
-  <form id="f"><div id="idbox"></div>
-  <label>Sultan of the Night</label><div class="clist" id="lr"></div>
-  <label style="margin-top:20px">Queen of the Night</label><div class="clist" id="lq"></div>
-  <button class="btn block" id="sub" type="submit">Hantar Undi</button><div id="m"></div></form>`;
-  const cand = (list, name) => list.length ? list.map(c => `<label class="cand"><input type="radio" name="${name}" value="${c.no}"><span class="badge">${String(c.no).padStart(2, '0')}</span><span class="t"><b>${esc(c.nama)}</b><span>${esc(c.unit)}</span></span></label>`).join('') : '<div class="small">Tiada calon.</div>';
-  $('#lr').innerHTML = cand(vi.raja, 'raja'); $('#lq').innerHTML = cand(vi.permaisuri, 'perm');
-  $('#f').addEventListener('change', e => { const t = e.target; if (t.type !== 'radio') return; document.querySelectorAll('input[name=' + t.name + ']').forEach(x => x.closest('.cand').classList.toggle('sel', x.checked)); });
-  $('#idbox').innerHTML = reg ? `<div class="msg ok">Mengundi sebagai <b>${esc(reg.nama)}</b> (No. ${String(reg.no).padStart(2, '0')})</div>`
-    : `<label>No. Bertuah Anda</label><input id="vno" inputmode="numeric" maxlength="3" placeholder="cth: 07"><label>Nama Penuh (seperti ketika mendaftar)</label><input id="vnm" placeholder="Nama penuh">`;
-  $('#f').onsubmit = async e => {
-    e.preventDefault();
-    const raja = ($('input[name=raja]:checked') || {}).value, perm = ($('input[name=perm]:checked') || {}).value;
-    const vno = reg ? reg.no : $('#vno').value, vnm = reg ? reg.nama : $('#vnm').value;
-    if (!raja && !perm) return $('#m').innerHTML = '<div class="msg err">Sila pilih sekurang-kurangnya satu calon.</div>';
-    $('#sub').disabled = true; $('#sub').textContent = 'Menghantar…';
-    const r = await api('vote', { voterNo: vno, voterNama: vnm, raja, permaisuri: perm });
-    if (r.ok || r.code === 'dup') { LS.set('voted_' + vno, true); FX.burst(innerWidth / 2, innerHeight / 2, 100, 9); $('#card').innerHTML = `<div class="center"><div class="crown">♛</div><h2>${r.ok ? 'Terima kasih!' : 'Sudah mengundi'}</h2><p>${r.ok ? 'Undi anda telah direkodkan.' : 'Undi anda telah direkodkan sebelum ini.'}<br>Nantikan pengumuman <b>Sultan &amp; Queen of the Night</b>.</p></div>`; }
+  if (LS.get('voted', false)) return thanks('Terima kasih!');
+  if (!vi.voteOpen) {
+    $('#card').innerHTML = `<h2>Undian Best Dress</h2><div class="center"><div class="crown">🌙</div><p>Undian <b>belum dibuka</b> atau telah ditutup.<br>Halaman ini akan terbuka sendiri apabila undian bermula.</p></div>`;
+    every(async () => { const r = await api('voteInfo'); if (r.ok && r.voteOpen) navigate(location.href, false); }, 5000);
+    return;
+  }
+  const L = { raja: vi.raja.filter(c => c.no !== self), perm: vi.permaisuri.filter(c => c.no !== self) };
+  const sel = { raja: 0, perm: 0 }; let tab = 'raja', fq = '';
+  const nameOf = (k) => { const c = L[k].find(x => x.no === sel[k]); return c ? c.nama : ''; };
+  $('#card').innerHTML = `<h2>♛ Undian Best Dress ♛</h2><p class="small center">Ketik nama untuk memilih. Ketik sekali lagi untuk membatalkan. Satu undi bagi setiap peserta.</p>
+    <div class="tabs"><button type="button" data-t="raja" class="on">🤴 Sultan <i id="ck_raja"></i></button><button type="button" data-t="perm">👑 Queen <i id="ck_perm"></i></button></div>
+    <input id="fq" placeholder="Cari nama…" autocomplete="off"><div id="vl"></div>
+    <div class="votebar"><div class="sum" id="sum"></div><button class="btn block" id="sub" type="button">Hantar Undi</button><div id="m"></div></div>`;
+  function rows() {
+    const f = fq.trim().toLowerCase(), l = L[tab].filter(c => !f || (c.nama + ' ' + c.unit).toLowerCase().includes(f));
+    $('#vl').innerHTML = l.length ? l.map(c => `<div class="cand ${sel[tab] === c.no ? 'sel' : ''}" data-no="${c.no}" role="checkbox" aria-checked="${sel[tab] === c.no}" tabindex="0"><span class="badge">${esc(c.nama.charAt(0))}</span><span class="t"><b>${esc(c.nama)}</b><span>${esc(c.unit)}</span></span></div>`).join('') : `<div class="small center" style="margin:16px">${L[tab].length ? 'Tiada nama dijumpai.' : 'Tiada calon.'}</div>`;
+  }
+  function sum() {
+    $('#ck_raja').textContent = sel.raja ? '✓' : ''; $('#ck_perm').textContent = sel.perm ? '✓' : '';
+    const p = []; if (sel.raja) p.push('Sultan: <b>' + esc(nameOf('raja')) + '</b>'); if (sel.perm) p.push('Queen: <b>' + esc(nameOf('perm')) + '</b>');
+    $('#sum').innerHTML = p.join(' · ') || 'Belum memilih sesiapa';
+  }
+  rows(); sum();
+  document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => { tab = b.dataset.t; document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b)); rows(); });
+  $('#fq').oninput = e => { fq = e.target.value; rows(); };
+  const pick = el => { const c = el && el.closest('.cand'); if (!c) return; const no = +c.dataset.no; sel[tab] = sel[tab] === no ? 0 : no; $('#vl').querySelectorAll('.cand').forEach(x => { const on = +x.dataset.no === sel[tab]; x.classList.toggle('sel', on); x.setAttribute('aria-checked', on); }); sum(); $('#m').innerHTML = ''; };
+  $('#vl').onclick = e => pick(e.target);
+  $('#vl').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(e.target); } };
+  $('#sub').onclick = async () => {
+    if (!sel.raja && !sel.perm) return $('#m').innerHTML = '<div class="msg err">Sila pilih sekurang-kurangnya satu calon.</div>';
+    $('#sub').disabled = true; $('#sub').textContent = 'Menghantar…'; $('#m').innerHTML = '';
+    const r = await api('vote', { dev, voterNo: self || '', raja: sel.raja || '', permaisuri: sel.perm || '' });
+    if (r.ok || r.code === 'dup') { LS.set('voted', true); FX.burst(innerWidth / 2, innerHeight / 2, 100, 9); thanks(r.ok ? 'Terima kasih!' : 'Sudah mengundi'); }
     else { $('#sub').disabled = false; $('#sub').textContent = 'Hantar Undi'; $('#m').innerHTML = `<div class="msg err">${esc(r.error)}</div>`; }
   };
 }
 
-/* ============ HALAMAN: POSTER QR ============ */
-function printQR(sz) {
-  const old = $('#pgsize'); if (old) old.remove();
-  const st = document.createElement('style'); st.id = 'pgsize';
-  st.textContent = sz === 'A3'
-    ? '@media print{@page{size:A3;margin:0}html,body{width:297mm!important;height:420mm!important}body.qrp #app{zoom:1.41421}}'
-    : '@media print{@page{size:A4;margin:0}}';
-  document.head.appendChild(st);
-  const done = () => { st.remove(); removeEventListener('afterprint', done); };
-  addEventListener('afterprint', done);
-  setTimeout(() => window.print(), 80);
-}
+/* ============ HALAMAN: QR (paparan skrin LED) ============ */
+function qrMake(text) { if (!window.qrcode) (0, eval)($('#qrlib').textContent); const q = qrcode(0, 'M'); q.addData(text); q.make(); return q; }
 async function pgPoster(kind) {
-  document.body.classList.add('qrp'); buildBg(false);
+  document.body.classList.add('qrp'); buildBg(true);
   const isV = kind === 'undi';
   const T = pageUrl(isV ? 'undi' : 'daftar');
   const card = isV
     ? `<h2>Undi Best Dress</h2><p class="qrsub">Imbas untuk mengundi<br><b>Sultan of the Night</b> &amp; <b>Queen of the Night</b></p>`
     : `<h2>Daftar Kehadiran</h2><p class="qrsub">Imbas untuk dapat<br><b>No. Cabutan Bertuah</b></p>`;
-  app.innerHTML = `${hero()}
-   <div style="max-width:440px;margin:0 auto"><section class="card qrcard fadein">${card}<div class="qrbox" id="q1"></div></section></div>
-  <div class="qrbtns noprint"><a class="btn ghost sm" href="${pageUrl('dashboard')}">← Dashboard</a><button class="btn sm" onclick="printQR('A4')">🖨 Cetak A4</button><button class="btn sm" onclick="printQR('A3')">🖨 Cetak A3</button></div>`;
-  const mk = (id, t) => { try { if (!window.qrcode) (0, eval)($('#qrlib').textContent); const q = qrcode(0, 'M'); q.addData(t); q.make(); $(id).innerHTML = q.createSvgTag({ cellSize: 6, margin: 0, scalable: true }); const sv = $(id + ' svg'); sv.removeAttribute('width'); sv.removeAttribute('height'); sv.style.display = 'block'; sv.querySelectorAll('rect,path').forEach(n => { if (n.getAttribute('fill') === '#000000') n.setAttribute('fill', '#1a0f3d'); if (n.getAttribute('fill') === '#ffffff') n.setAttribute('fill', '#fff6dd'); }); } catch (e) { $(id).innerHTML = '<div class="small" style="color:#2a1659;width:240px">Gagal menjana QR: ' + esc(e.message) + '</div>'; } };
-  mk('#q1', T);
+  app.innerHTML = `${hero()}<section class="card qrcard fadein">${card}<div class="qrbox" id="q1"></div></section>${isV ? '<div class="vcount" id="vc"></div>' : ''}${flowNav(isV ? 'posterundi' : 'poster')}`;
+  try {
+    const q = qrMake(T); $('#q1').innerHTML = q.createSvgTag({ cellSize: 6, margin: 0, scalable: true });
+    const sv = $('#q1 svg'); sv.removeAttribute('width'); sv.removeAttribute('height'); sv.style.display = 'block';
+    sv.querySelectorAll('rect,path').forEach(n => { if (n.getAttribute('fill') === '#000000') n.setAttribute('fill', '#1a0f3d'); if (n.getAttribute('fill') === '#ffffff') n.setAttribute('fill', '#fff6dd'); });
+  } catch (e) { $('#q1').innerHTML = '<div class="small" style="color:#2a1659;width:240px">Gagal menjana QR: ' + esc(e.message) + '</div>'; }
   if (location.protocol === 'file:') app.insertAdjacentHTML('beforeend', '<div class="msg err">Anda membuka fail secara tempatan. Muat naik ke GitHub Pages dahulu supaya QR menunjuk ke alamat web sebenar.</div>');
+  if (isV && SS.get('pin')) {
+    // Buka undian secara automatik apabila halaman ini dipaparkan & tunjuk bilangan pengundi secara langsung.
+    let opened = false;
+    const upd = async () => {
+      const r = await api('results'); if (!r.ok) return;
+      if (!r.voteOpen && !opened) api('setConfig', { config: { voteOpen: true } });
+      opened = true;
+      const v = $('#vc'); if (v) v.innerHTML = `Undian dibuka · <b>${r.pengundi}</b> telah mengundi`;
+    };
+    upd(); every(upd, 4000);
+  }
+}
+// Muat turun poster QR pendaftaran (PNG saiz A4/A3, 300 dpi) untuk dicetak di kaunter pendaftaran.
+async function downloadQR(sz) {
+  const A3 = sz === 'A3', W = A3 ? 3508 : 2480, H = A3 ? 4961 : 3508, u = W / 2480;
+  try { await Promise.all(['900 60px "Cinzel Decorative"', '700 60px "Cinzel Decorative"', '700 40px Nunito', '400 40px Nunito', 'italic 400 40px Amiri'].map(f => document.fonts.load(f))); } catch (e) { }
+  const q = qrMake(pageUrl('daftar')), n = q.getModuleCount();
+  const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+  const D = 'Cinzel Decorative', B = 'Nunito', AM = 'Amiri';
+  const g = x.createRadialGradient(W / 2, 0, 0, W / 2, 0, H * 1.1); g.addColorStop(0, '#40207a'); g.addColorStop(.5, '#2b1760'); g.addColorStop(1, '#1f1148'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  let seed = 11; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  x.fillStyle = '#fff6dd'; for (let i = 0; i < 460; i++) { x.globalAlpha = .25 + rnd() * .7; x.beginPath(); x.arc(rnd() * W, rnd() * H * .86, (1 + rnd() * 3.2) * u, 0, 7); x.fill(); } x.globalAlpha = 1;
+  // siluet bandar
+  const base = H - 80 * u; x.fillStyle = '#34196a'; x.fillRect(0, base, W, 80 * u);
+  [[260, 200, 140], [700, 150, 110], [1240, 240, 170], [1800, 170, 120], [2260, 210, 150]].forEach(([cx, w, h]) => { x.beginPath(); x.rect((cx - w / 2) * u, base - h * u, w * u, h * u); x.fill(); x.beginPath(); x.ellipse(cx * u, base - h * u, w / 2 * u, w / 2.2 * u, 0, Math.PI, 0); x.fill(); x.fillRect((cx - 4) * u, base - (h + w / 2.2 + 60) * u, 8 * u, 60 * u); });
+  [[480, 320], [980, 270], [1520, 330], [2040, 280]].forEach(([cx, h]) => { x.fillRect((cx - 22) * u, base - h * u, 44 * u, h * u); x.fillRect((cx - 34) * u, base - h * u, 68 * u, 18 * u); x.beginPath(); x.moveTo((cx - 24) * u, base - h * u); x.quadraticCurveTo(cx * u, (base / u - h - 90) * u, (cx + 24) * u, base - h * u); x.fill(); });
+  x.fillStyle = '#f2c14e'; for (let i = 0; i < 46; i++) { x.globalAlpha = .3 + (i % 5) * .13; x.fillRect((60 + (i * 137) % 2380) * u, base - (10 + (i * 53) % 150) * u, 7 * u, 11 * u); } x.globalAlpha = 1;
+  x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+  const sp = v => { try { x.letterSpacing = v * u + 'px'; } catch (e) { } };
+  const gold = (y, h) => { const t = x.createLinearGradient(0, y - h, 0, y); t.addColorStop(0, '#fff6c9'); t.addColorStop(.5, '#ffd75e'); t.addColorStop(1, '#d9962b'); return t; };
+  x.shadowColor = 'rgba(242,193,78,.55)'; x.shadowBlur = 50 * u;
+  x.font = `900 ${170 * u}px "${D}",Georgia,serif`; sp(8); x.fillStyle = gold(470 * u, 170 * u); x.fillText('ARABIAN NIGHT', W / 2, 470 * u);
+  x.shadowBlur = 0; x.font = `700 ${62 * u}px "${D}",Georgia,serif`; sp(22); x.fillStyle = '#e0aaff'; x.fillText('A MAGICAL JOURNEY', W / 2, 590 * u);
+  sp(0); x.strokeStyle = '#f2c14e'; x.lineWidth = 3 * u; x.beginPath(); x.moveTo(520 * u, 690 * u); x.lineTo(1150 * u, 690 * u); x.moveTo(1330 * u, 690 * u); x.lineTo(1960 * u, 690 * u); x.stroke();
+  x.fillStyle = '#f2c14e'; x.font = `${44 * u}px "${B}",sans-serif`; x.fillText('❖', W / 2, 706 * u);
+  x.font = `700 ${80 * u}px "${D}",Georgia,serif`; sp(6); x.fillStyle = '#ffd23f'; x.fillText('KELAB BAHAGIAN PENGURUSAN', W / 2, 820 * u);
+  sp(2); x.font = `italic 400 ${68 * u}px "${AM}",Georgia,serif`; x.fillStyle = '#c77dff'; x.fillText('Suruhanjaya Perkhidmatan Pendidikan', W / 2, 920 * u);
+  // kad
+  const cx0 = 270 * u, cy0 = 1060 * u, cw = 1940 * u, ch = 1900 * u, rr = 90 * u;
+  const rrect = (X, Y, w, h, r) => { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r); x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r); x.arcTo(X, Y, X + w, Y, r); x.closePath(); };
+  rrect(cx0, cy0, cw, ch, rr); x.fillStyle = 'rgba(48,26,98,.82)'; x.fill(); x.strokeStyle = 'rgba(242,193,78,.7)'; x.lineWidth = 5 * u; x.stroke();
+  rrect(cx0 + 16 * u, cy0 + 16 * u, cw - 32 * u, ch - 32 * u, rr - 12 * u); x.strokeStyle = 'rgba(242,193,78,.22)'; x.lineWidth = 3 * u; x.stroke();
+  sp(5); x.font = `700 ${104 * u}px "${D}",Georgia,serif`; x.fillStyle = '#f2c14e'; x.fillText('DAFTAR KEHADIRAN', W / 2, 1230 * u);
+  sp(0); x.font = `700 ${68 * u}px "${B}",sans-serif`; x.fillStyle = '#fff6dd'; x.fillText('Imbas untuk dapat', W / 2, 1350 * u);
+  x.font = `800 ${92 * u}px "${B}",sans-serif`; x.fillStyle = '#f2c14e'; x.fillText('No. Cabutan Bertuah', W / 2, 1462 * u);
+  const bs = 1260 * u, bx = (W - bs) / 2, by = 1540 * u;
+  rrect(bx, by, bs, bs, 60 * u); x.fillStyle = '#fff6dd'; x.fill(); x.strokeStyle = '#f2c14e'; x.lineWidth = 22 * u; x.stroke();
+  const pad = 90 * u, cell = (bs - 2 * pad) / n; x.fillStyle = '#1a0f3d';
+  for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (q.isDark(r, k)) x.fillRect(Math.floor(bx + pad + k * cell), Math.floor(by + pad + r * cell), Math.ceil(cell) + 1, Math.ceil(cell) + 1);
+  x.font = `700 ${58 * u}px "${B}",sans-serif`; x.fillStyle = '#fff6dd'; x.fillText('Jumaat, 4 Disember 2026  ·  8.00 – 11.00 malam', W / 2, 3110 * u);
+  x.font = `800 ${62 * u}px "${B}",sans-serif`; x.fillStyle = '#f2c14e'; x.fillText('Mercure Living Putrajaya', W / 2, 3200 * u);
+  await new Promise(res => c.toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'QR-Pendaftaran-Arabian-Night-' + sz + '.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); res(); }, 'image/png'));
 }
 
 /* ============ HALAMAN: DASHBOARD ============ */
@@ -3377,7 +3537,7 @@ async function pgDashboard() {
   document.body.classList.add('cmp');
   document.body.classList.add('wide'); buildBg(false);
   await needAdmin();
-  const blank = { peserta: [], cabutan: [], undiCount: 0, config: defaultConfig(), byUnit: {}, next: 0 };
+  const blank = { peserta: [], cabutan: [], undiCount: 0, config: defaultConfig(), byUnit: {}, next: 0, top: {} };
   let last = SS.get('dash') || '', loading = !last, q = '';
   let d = last ? JSON.parse(last) : blank;
   let pend = 0;
@@ -3394,32 +3554,36 @@ async function pgDashboard() {
     const maxU = Math.max(1, ...Object.values(d.byUnit));
     const getRows = () => d.peserta.filter(p => !q || (p.nama + p.unit + p.no).toLowerCase().includes(q.toLowerCase()));
     const won = {}; d.cabutan.forEach(c => { if (!c.absent) won[c.no] = c.cabutan; });
-    const rowsHtml = () => getRows().map(p => `<tr><td><b style="color:var(--gold)">${String(p.no).padStart(2, '0')}</b></td><td>${esc(p.nama)}</td><td>${esc(p.unit)}</td><td>${p.jantina || '—'}</td><td>${fmtTime(p.masa)}</td><td>${won[p.no] ? '#' + won[p.no] : '—'}</td>
-    <td><select data-calon="${p.no}"><option value="">—</option><option value="raja" ${p.calon === 'raja' ? 'selected' : ''}>Calon Sultan</option><option value="permaisuri" ${p.calon === 'permaisuri' ? 'selected' : ''}>Calon Queen</option></select></td><td><button class="btn ghost sm" data-del="${p.no}" style="padding:6px 10px">✕</button></td></tr>`).join('') || '<tr><td colspan="8" class="small">Tiada peserta.</td></tr>';
+    const rowsHtml = () => getRows().map(p => `<tr><td><b style="color:var(--gold)">${String(p.no).padStart(2, '0')}</b></td><td>${esc(p.nama)}</td><td>${esc(p.unit)}</td><td>${p.jantina || '—'}</td><td>${fmtTime(p.masa)}</td><td>${won[p.no] ? '#' + won[p.no] : '—'}</td><td><button class="btn ghost sm" data-del="${p.no}" style="padding:6px 10px">✕</button></td></tr>`).join('') || '<tr><td colspan="7" class="small">Tiada peserta.</td></tr>';
     app.innerHTML = `${hero()}${navLinks('dashboard')}
     <div class="tiles"><div class="tile"><b>${d.peserta.length}</b><span>Peserta berdaftar</span></div><div class="tile"><b>${d.config.total - d.peserta.length}</b><span>Nombor berbaki</span></div><div class="tile"><b>${d.cabutan.filter(c => !c.absent).length}/${d.config.total}</b><span>Cabutan selesai</span></div><div class="tile"><b>${d.undiCount}</b><span>Pengundi Best Dress</span></div></div>
+    <section class="card" style="margin-top:14px"><h2>Undi Tertinggi · Best Dress</h2><div class="grid2">${[['raja', '🤴 Sultan of the Night'], ['permaisuri', '👑 Queen of the Night']].map(([k, t]) => { const w = (d.top || {})[k]; return `<div class="center"><div class="small">${t}</div>${w ? `<div style="font-family:var(--disp);font-size:1.25rem;color:#fff;margin-top:4px">${esc(w.nama)}</div><div class="small">${esc(w.unit)} · <b style="color:var(--gold)">${w.undi}</b> undi</div>` : '<div class="small" style="margin-top:6px">Belum ada undi</div>'}</div>`; }).join('')}</div><p class="small center" style="margin-top:8px">Pengundi: <b>${d.undiCount}</b> · Undian: <b class="vstat">${d.config.voteOpen ? 'DIBUKA' : 'DITUTUP'}</b></p></section>
     <div class="grid2" style="margin-top:14px">
       <section class="card"><h2>Mengikut Unit</h2>${UNITS.map(u => `<div class="ubar"><span>${esc(u)}</span><div class="bar" style="margin:0"><i style="width:${(d.byUnit[u] || 0) / maxU * 100}%"></i></div><b>${d.byUnit[u] || 0}</b></div>`).join('')}</section>
       <section class="card"><h2>Alat Urus Setia</h2>
         <div class="row"><button class="btn sm" id="tv">${d.config.voteOpen ? '■ Tutup Undian' : '▶ Buka Undian Best Dress'}</button><button class="btn ghost sm" id="csv">⬇ Eksport CSV</button><button class="btn ghost sm" id="fl">↻ Segar semula</button>${DEMO ? '<button class="btn ghost sm" id="seed">🧪 Isi 50 peserta contoh</button>' : ''}</div>
-        <p class="small" style="margin:8px 0">Undian: <b>${d.config.voteOpen ? 'DIBUKA' : 'DITUTUP'}</b>. Calon dipilih automatik: peserta Lelaki → Sultan of the Night, Perempuan → Queen of the Night. Anda boleh tandakan calon tertentu dalam jadual untuk menggantikan senarai automatik.</p>
+        <p class="small" style="margin:8px 0">Undian: <b class="vstat">${d.config.voteOpen ? 'DIBUKA' : 'DITUTUP'}</b>. Calon automatik: peserta Lelaki → Sultan of the Night, Perempuan → Queen of the Night. Undian dibuka sendiri apabila halaman QR Best Dress dipaparkan dan ditutup apabila halaman Keputusan dibuka.</p>
+        <div class="row" style="margin-bottom:6px"><button class="btn ghost sm" id="qa4">⬇ QR Daftar A4 (cetak)</button><button class="btn ghost sm" id="qa3">⬇ QR Daftar A3 (cetak)</button></div>
         <div class="dash"></div><label style="margin-top:0">Daftar manual (kaunter urus setia)</label>
         <input id="an" placeholder="Nama penuh"><div style="height:8px"></div><select id="au"><option value="">— Unit —</option>${unitOptions()}</select><div style="height:8px"></div><select id="ag"><option value="">— Jantina —</option><option value="L">Lelaki</option><option value="P">Perempuan</option></select><button class="btn sm block" id="aa" style="margin-top:12px">Tambah</button><div id="am"></div>
         <div class="dash"></div><div class="row"><button class="btn red sm" id="r1">Set semula cabutan</button><button class="btn red sm" id="r2">Set semula undi</button><button class="btn red sm" id="r3">Padam semua data</button></div>
       </section></div>
-    <section class="card"><h2>Senarai Peserta${loading ? ' · memuatkan…' : ''}</h2><input id="srch" placeholder="Cari nama / unit / nombor…" value="${esc(q)}"><div class="scroll" style="margin-top:10px"><table><tr><th>No.</th><th>Nama</th><th>Unit</th><th>L/P</th><th>Masa</th><th>Cabutan</th><th>Calon</th><th></th></tr>
+    <section class="card"><h2>Senarai Peserta${loading ? ' · memuatkan…' : ''}</h2><input id="srch" placeholder="Cari nama / unit / nombor…" value="${esc(q)}"><div class="scroll" style="margin-top:10px"><table><tr><th>No.</th><th>Nama</th><th>Unit</th><th>L/P</th><th>Masa</th><th>Cabutan</th><th></th></tr>
     <tbody id="rb">${rowsHtml()}</tbody></table></div></section>`;
     function bindRows() {
-    document.querySelectorAll('[data-calon]').forEach(s => s.onchange = () => { const p = d.peserta.find(x => String(x.no) === s.dataset.calon); if (p) p.calon = s.value; bg(() => api('setCalon', { no: s.dataset.calon, calon: s.value })); });
     document.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { const p = d.peserta.find(x => String(x.no) === b.dataset.del); if (!confirm('Padam ' + p.nama + ' (No. ' + p.no + ')?')) return; d.peserta = d.peserta.filter(x => x !== p); d.byUnit[p.unit] = Math.max(0, (d.byUnit[p.unit] || 1) - 1); draw(); const r = await bg(() => api('adminDelete', { no: p.no })); if (!r.ok) alert(r.error); refresh(); });
     }
     ['#an', '#au', '#ag'].forEach((i, k) => { if (keep[k]) $(i).value = keep[k]; });
     window.scrollTo(0, sy);
     $('#srch').oninput = e => { q = e.target.value; $('#rb').innerHTML = rowsHtml(); bindRows(); };
+    const paintVote = () => { const o = d.config.voteOpen; $('#tv').textContent = o ? '■ Tutup Undian' : '▶ Buka Undian Best Dress'; document.querySelectorAll('.vstat').forEach(e => e.textContent = o ? 'DIBUKA' : 'DITUTUP'); };
     $('#tv').onclick = () => {
-      const was = d.config.voteOpen; d.config.voteOpen = !was; draw();
-      bg(async () => { const r = await api('setConfig', { config: { voteOpen: !was } }); if (!r.ok) { d.config.voteOpen = was; draw(); alert(r.error); } }).then(() => refresh());
+      const was = d.config.voteOpen; d.config.voteOpen = !was; paintVote();   // kemas kini serta-merta tanpa lukis semula halaman
+      SS.set('dash', JSON.stringify(d));
+      bg(async () => { const r = await api('setConfig', { config: { voteOpen: !was } }); if (!r.ok) { d.config.voteOpen = was; paintVote(); alert(r.error); } });
     };
+    const dq = (id, sz) => { const b = $(id); b.onclick = async () => { const t = b.textContent; b.disabled = true; b.textContent = 'Menjana…'; try { await downloadQR(sz); } catch (e) { alert('Gagal menjana QR: ' + e.message); } b.disabled = false; b.textContent = t; }; };
+    dq('#qa4', 'A4'); dq('#qa3', 'A3');
     $('#csv').onclick = () => {
       const lines = [['No', 'Nama', 'Unit', 'Jantina', 'Masa', 'Cabutan']].concat(d.peserta.map(p => [p.no, p.nama, p.unit, p.jantina || '', p.masa, won[p.no] || '']));
       const csv = '﻿' + lines.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\r\n');
@@ -3455,7 +3619,7 @@ async function pgDashboard() {
     };
   }
   draw(); refresh();
-  every(() => { if (document.hidden) return; if (document.activeElement && ['INPUT', 'SELECT'].includes(document.activeElement.tagName)) return; refresh(); }, 15000);
+  every(() => { if (document.hidden) return; if (document.activeElement && ['INPUT', 'SELECT'].includes(document.activeElement.tagName)) return; refresh(); }, 8000);
   every(() => api('ping'), 240000);
 }
 
@@ -3472,8 +3636,8 @@ async function pgCabutan() {
   async function reload() { const r = await api('drawState'); if (r.ok) { S = r; SS.set('drawS', JSON.stringify(r)); } return r.ok; }
   app.innerHTML = `<div class="stage-wrap">
     <div class="topbar noprint"><div class="brand">✦ ARABIAN NIGHT ✦</div><div class="pills" id="pills"></div>
-      <div class="tools"><button class="ib" id="bm" title="Muzik">♪</button><button class="ib" id="bl" title="Senarai pemenang">☰</button><button class="ib" id="bs" title="Tetapan">⚙</button><button class="ib" id="bf" title="Skrin penuh">⛶</button><a class="ib" href="${pageUrl('dashboard')}" title="Dashboard" style="text-decoration:none">⌂</a></div></div>
-    <div class="mid"><div class="sesi" id="sesi"></div><div class="cabno">CABUTAN NO.<b id="cn">–</b></div><div class="prize" id="prize"></div>
+      <div class="tools"><button class="ib" id="bm" title="Muzik">♪</button><button class="ib" id="bl" title="Senarai pemenang">☰</button><button class="ib" id="bs" title="Tetapan">⚙</button><button class="ib" id="bf" title="Skrin penuh">⛶</button><a class="ib" href="${pageUrl(flowPrev('cabutan'))}" title="Sebelumnya">‹</a><a class="ib" href="${pageUrl('dashboard')}" title="Dashboard">⌂</a><a class="ib nx" id="nx" href="${pageUrl(flowNext('cabutan'))}" title="Seterusnya: QR Best Dress">›</a></div></div>
+    <div class="mid"><div class="sesi" id="sesi"></div><div class="cabno" id="cabno">CABUTAN NO.<b id="cn">–</b></div><div class="prize" id="prize"></div>
       <div class="reelwrap"><div class="reel" id="reel">--</div></div>
       <div class="winner" id="winner"></div><div class="note" id="note"></div>
       <div class="ctrl"><button class="btn go" id="go">Cabut!</button></div><div class="ctrl noprint" id="after"></div><div id="warn" class="small"></div></div>
@@ -3483,8 +3647,12 @@ async function pgCabutan() {
   function paint(keep) {
     const n = S.next, ses = n ? sessOf(n) : null;
     $('#pills').innerHTML = SES().map(s => { const done = S.cabutan.filter(c => !c.absent && c.cabutan <= s.dari && c.cabutan >= s.hingga).length === (s.dari - s.hingga + 1); const cur = ses === s; return `<span class="pill ${cur ? 'cur' : done ? 'done' : ''}">${esc(s.nama)} · ${s.dari}–${s.hingga}</span>`; }).join('');
-    if (!n) { $('#sesi').textContent = 'Tamat'; $('#cn').textContent = '✦'; $('#prize').textContent = 'Tahniah kepada semua pemenang!'; $('#go').classList.add('hide'); return; }
-    $('#go').classList.remove('hide');
+    $('#nx').classList.toggle('ready', !n);
+    if (!n) {
+      $('#sesi').textContent = '✦ Cabutan Tamat ✦'; $('#cabno').classList.add('hide'); $('#prize').textContent = 'Tahniah kepada semua pemenang!'; $('#go').classList.add('hide'); if (reel.textContent === '--') reel.textContent = '✦';
+      $('#after').innerHTML = `<a class="btn sm" href="${pageUrl('posterundi')}">Seterusnya › QR Best Dress</a>`; return;
+    }
+    $('#after').innerHTML = ''; $('#cabno').classList.remove('hide'); $('#go').classList.remove('hide');
     if (!keep) { $('#sesi').textContent = ses ? `${ses.nama} · Cabutan ${ses.dari} → ${ses.hingga}` : 'Cabutan'; $('#cn').textContent = n; $('#prize').textContent = prizeOf(n) ? '🎁 ' + prizeOf(n) : ''; }
     const lastInSes = S.cabutan.length ? sessOf(S.cabutan[S.cabutan.length - 1].cabutan) : null;
     const newSes = S.cabutan.length && ses && lastInSes && lastInSes !== ses;
@@ -3549,11 +3717,8 @@ async function pgCabutan() {
     w.classList.add('show'); big ? FX.big() : FX.burst(innerWidth / 2, innerHeight * .4, 140, 11);
     await reload();
     const ses = sessOf(res.winner.cabutan);
-    if (!S.next) { $('#note').textContent = '✦ Semua cabutan selesai — tahniah kepada semua pemenang! ✦'; setTimeout(() => FX.rain(), 1500); }
+    if (!S.next) { setTimeout(() => FX.rain(), 1500); }
     else if (ses && res.winner.cabutan === ses.hingga) { const ns = sessOf(S.next); $('#note').textContent = `✦ ${ses.nama} tamat${ns ? ' — seterusnya: ' + ns.nama : ''} ✦`; }
-    $('#after').innerHTML = `<button class="btn ghost sm" id="ab">Tidak hadir — cabut semula</button><button class="btn ghost sm" id="un">Batalkan cabutan ini</button>`;
-    $('#ab').onclick = async () => { if (!confirm('Tandakan pemenang ini TIDAK HADIR dan cabut semula nombor yang sama?')) return; $('#ab').disabled = true; $('#ab').textContent = 'Memproses…'; $('#un').disabled = true; const r = await api('absentDraw'); if (!r.ok) return alert(r.error); await reload(); w.classList.remove('show'); $('#after').innerHTML = ''; $('#note').textContent = ''; reel.textContent = '--'; paint(); };
-    $('#un').onclick = async () => { if (!confirm('Batalkan cabutan terakhir? Peserta kembali ke senarai layak.')) return; $('#un').disabled = true; $('#un').textContent = 'Memproses…'; $('#ab').disabled = true; const r = await api('undoDraw'); if (!r.ok) return alert(r.error); await reload(); w.classList.remove('show'); $('#after').innerHTML = ''; $('#note').textContent = ''; reel.textContent = '--'; paint(); };
     paint(true); $('#go').disabled = false; busy = false;
   }
   $('#go').onclick = draw;
@@ -3566,39 +3731,62 @@ async function pgCabutan() {
   every(() => api('ping'), 240000);
 }
 
-/* ============ HALAMAN: BEST DRESS (PENTAS) ============ */
-async function pgBest() {
-  document.body.classList.add('cmp');
-  document.body.classList.add('wide'); buildBg(false);
+/* ============ HALAMAN: KEPUTUSAN QUEEN / SULTAN (skrin LED) ============ */
+async function pgResult(cat) {
+  document.body.classList.add('res'); buildBg(true);
   await needAdmin();
-  let R; try { R = JSON.parse(SS.get('bestR') || 'null'); } catch (e) { R = null; }
-  R = R || { ok: true, voteOpen: false, pengundi: 0, raja: [], permaisuri: [] };
-  const revealed = { raja: false, permaisuri: false };
-  async function load() { const r = await api('results'); if (r.ok) { R = r; SS.set('bestR', JSON.stringify(r)); } }
-  function top3(list, key) {
-    const t = list.slice(0, 3); const max = Math.max(1, ...list.map(c => c.undi));
-    return `<div class="podium">${t.map((c, i) => `<div><div class="v">${c.undi} undi</div><b>${esc(c.nama)}</b><br><span class="small">No. ${String(c.no).padStart(2, '0')} · ${esc(c.unit)}</span></div>`).join('')}</div>`;
+  const isQ = cat === 'permaisuri', title = isQ ? 'Queen of the Night' : 'Sultan of the Night', icon = isQ ? '👑' : '🤴', page = isQ ? 'queen' : 'sultan';
+  Snd.preload();
+  const fotos = {}; let key = '', first = true, busy = false, revealing = false, later = null;
+  app.innerHTML = `<div class="resw" id="rw"></div>${flowNav(page)}`;
+  api('setConfig', { config: { voteOpen: false } });   // undian ditutup apabila keputusan dipaparkan
+  const winners = R => { const l = R[cat]; return (!l.length || !l[0].undi) ? [] : l.filter(c => c.undi === l[0].undi).slice(0, 3); };
+  const spin = new Audio(BGM_FILE); spin.preload = 'auto';
+  CLEAN.push(() => { try { spin.pause(); } catch (e) { } });
+  const head = () => `<div class="rcrown">${icon}</div><div class="rtitle">${title}</div>`;
+  // Suspens: spin.mp3 dimainkan sepanjang tempohnya, nama calon berputar, kemudian pemenang diumumkan.
+  async function suspense(R) {
+    revealing = true;
+    const names = R[cat].map(c => c.nama), rw = $('#rw');
+    rw.className = 'resw';
+    rw.innerHTML = head() + `<div class="rrow"><div class="rw"><div class="ph">?</div><div class="nm" id="sn">…</div></div></div><div class="rwait">Siapakah pemenangnya?</div>`;
+    const W0 = winners(R); W0.forEach(c => { if (fotos[c.no] === undefined) api('foto', { no: c.no }).then(r => { fotos[c.no] = r.ok ? r.foto : ''; }); });
+    let ms = 8000;
+    try {
+      if (!(spin.duration > 0)) await new Promise(ok => { spin.addEventListener('loadedmetadata', ok, { once: true }); spin.addEventListener('error', ok, { once: true }); setTimeout(ok, 1500); });
+      if (spin.duration > 0 && isFinite(spin.duration)) ms = Math.min(30000, spin.duration * 1000);
+      spin.currentTime = 0; spin.loop = false; await spin.play();
+    } catch (e) { ms = 5000; }
+    const t = every(() => { const e = $('#sn'); if (e && names.length) e.textContent = names[Math.floor(Math.random() * names.length)]; }, 90);
+    await sleep(ms);
+    clearInterval(t); try { spin.pause(); } catch (e) { }
+    revealing = false;
+    const L = later || R; later = null; key = ''; await render(L, true);
   }
-  function block(key, title, icon) {
-    const list = R[key], max = Math.max(1, ...list.map(c => c.undi)), win = list[0], tie = list.length > 1 && list[1].undi === win.undi;
-    return `<section class="card center"><h2>${title}</h2>
-    ${revealed[key] ? (win && win.undi > 0 ? `<div class="crown">${icon}</div><div class="bignum" style="font-size:clamp(3rem,12vw,5rem)">${String(win.no).padStart(2, '0')}</div><div style="font-family:var(--disp);font-size:1.6rem;margin-top:6px">${esc(win.nama)}</div><div class="small">${esc(win.unit)} — ${win.undi} undi</div>${tie ? '<div class="msg err">Seri! Sila tentukan pemenang secara manual atau ulang undian.</div>' : ''}${top3(list, key)}` : '<div class="msg err">Belum ada undi.</div>') :
-      `<div class="crown" style="filter:grayscale(1) brightness(.5)">${icon}</div><button class="btn" data-rev="${key}">✦ Umumkan Pemenang ✦</button>`}
-    <div style="text-align:left;margin-top:18px">${list.slice(0, 8).map(c => `<div class="ubar" style="grid-template-columns:150px 1fr 28px"><span>${String(c.no).padStart(2, '0')} · ${esc(c.nama.split(' ').slice(0, 3).join(' '))}</span><div class="bar" style="margin:0"><i style="width:${c.undi / max * 100}%"></i></div><b>${c.undi}</b></div>`).join('')}</div></section>`;
+  async function render(R, now) {
+    const W = winners(R), k = W.map(c => c.no + ':' + c.undi).join(',');
+    const tot = `Jumlah pengundi: <b>${R.pengundi}</b>`;
+    if (revealing) { later = R; return; }
+    if (first && W.length && !now) { first = false; return suspense(R); }
+    if (k === key && $('#rt')) { $('#rt').innerHTML = tot; return; }
+    if (busy) return; busy = true;
+    await Promise.all(W.filter(c => fotos[c.no] === undefined).map(async c => { const r = await api('foto', { no: c.no }); fotos[c.no] = r.ok ? r.foto : ''; }));
+    const was = key; key = k; busy = false;
+    const rw = $('#rw'); if (!rw) return;
+    rw.className = 'resw' + (W.length > 1 ? ' n' + W.length : '');
+    rw.innerHTML = head() + (W.length > 1 ? '<div class="rwait">✦ Seri ✦</div>' : '') +
+      (W.length ? `<div class="rrow">${W.map(c => `<div class="rw">${fotos[c.no] ? `<img class="ph" src="${fotos[c.no]}" alt="">` : `<div class="ph">${esc(c.nama.charAt(0))}</div>`}<div class="nm">${esc(c.nama)}</div><div class="un">${esc(c.unit)}</div><div class="rv"><b>${c.undi}</b>undi</div></div>`).join('')}</div>` : '<div class="rwait">Menunggu undi…</div>') +
+      `<div class="rtot" id="rt">${tot}</div>`;
+    if (W.length) { if (now) { try { Snd.unlock(); Snd.unlockSfx(); Snd.sfx('menang', true); } catch (e) { } FX.big(); } else if (was) FX.burst(innerWidth / 2, innerHeight * .4, 90, 9); }
   }
-  function draw() {
-    app.innerHTML = `${hero()}${navLinks('bestdress')}<div class="card"><div class="row" style="justify-content:space-between"><div>Undian: <b>${R.voteOpen ? 'DIBUKA' : 'DITUTUP'}</b> · Jumlah pengundi: <b>${R.pengundi}</b></div><div class="row"><button class="btn sm" id="tv">${R.voteOpen ? '■ Tutup Undian' : '▶ Buka Undian'}</button><button class="btn ghost sm" id="rf">↻ Muat semula</button></div></div></div>
-    <div class="grid2">${block('permaisuri', 'Queen of the Night', '👑')}${block('raja', 'Sultan of the Night', '🤴')}</div>`;
-    $('#tv').onclick = async () => { await api('setConfig', { config: { voteOpen: !R.voteOpen } }); await load(); draw(); };
-    $('#rf').onclick = async () => { await load(); draw(); };
-    document.querySelectorAll('[data-rev]').forEach(b => b.onclick = async () => { await load(); revealed[b.dataset.rev] = true; Snd.unlock(); Snd.fanfare(true); draw(); FX.big(); });
-  }
-  draw(); load().then(draw);
+  async function load() { const r = await api('results'); if (r.ok) render(r); }
+  render({ pengundi: 0, raja: [], permaisuri: [] }, true); load();
+  every(load, 3000);
   every(() => api('ping'), 240000);
 }
 
 /* ============ ROUTER ============ */
-const ROUTES = { daftar: pgDaftar, undi: pgUndi, poster: () => pgPoster('daftar'), posterundi: () => pgPoster('undi'), dashboard: pgDashboard, admin: pgDashboard, cabutan: pgCabutan, draw: pgCabutan, bestdress: pgBest };
+const ROUTES = { daftar: pgDaftar, undi: pgUndi, poster: () => pgPoster('daftar'), posterundi: () => pgPoster('undi'), dashboard: pgDashboard, admin: pgDashboard, cabutan: pgCabutan, draw: pgCabutan, queen: () => pgResult('permaisuri'), sultan: () => pgResult('raja'), bestdress: () => pgResult('permaisuri') };
 const pageOf = () => (new URLSearchParams(location.search).get('page') || 'daftar').toLowerCase();
 function leavePage() {
   EPOCH++;
