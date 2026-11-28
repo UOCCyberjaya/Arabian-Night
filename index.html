@@ -2617,6 +2617,8 @@ const SFX_FILES = {
   p1: 'first.mp3',        // Podium No. 1
   grand: 'grand.mp3'      // pembukaan Hadiah Utama (bermula semasa cabut No. 3)
 };
+// Muzik latar Arab semasa spin: letak fail ini dalam folder yang sama. Jika tiada, muzik Arab automatik digunakan.
+const BGM_FILE = 'musik.mp3';
 
 /* ===== ENJIN DIKONGSI (Apps Script + mod demo) ===== */
 var UNITS = ['Pejabat SUB (U)', 'Unit Sumber Manusia', 'Unit Pentadbiran', 'Unit Kewangan', 'Unit Perolehan', 'Unit Latihan', 'Unit Aset', 'Unit Pendaftaran', 'Unit Komunikasi Korporat'];
@@ -3061,6 +3063,7 @@ const Snd = (() => {
     },
     stopSfx() { try { if (this._cur) { this._cur.pause(); this._cur = null; } } catch (e) { } },
     preload() {
+      if (!file && !this._bgm) { const a = new Audio(); a.preload = 'auto'; a.loop = true; a.addEventListener('loadeddata', () => { if (!file) file = a; }); a.src = BGM_FILE; this._bgm = a; }
       this._c = this._c || {};
       Object.keys(SFX_FILES).forEach(k => { if (!this._c[k]) { const a = new Audio(); a.preload = 'auto'; a.src = SFX_FILES[k]; this._c[k] = a; } });
     },
