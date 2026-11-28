@@ -312,7 +312,6 @@ body.fit .gopt span{padding:9px 6px}
 a,button,.btn,select,label{touch-action:manipulation}
 .btn:active:not(:disabled){transform:scale(.97)}
 .btn:disabled{opacity:.6;cursor:wait}
-@view-transition{navigation:auto}
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.22s}
 html{scroll-behavior:smooth}
 </style>
@@ -2785,13 +2784,20 @@ function summary(store) {
 function handle(store, req, env) {
   migrateConfig(store);
   var a = req.action, cfg = store.config;
-  var open = { info: 1, voteInfo: 1, register: 1, vote: 1, ping: 1, cek: 1 };
+  var open = { info: 1, voteInfo: 1, register: 1, vote: 1, ping: 1, cek: 1, setFoto: 1 };
   if (!open[a] && String(req.pin == null ? '' : req.pin) !== String(env.pin)) return err('PIN tidak betul.', 'pin');
 
   switch (a) {
     case 'ping': return { ok: true };
 
     case 'auth': return { ok: true };
+
+    case 'setFoto': {
+      var sn = toInt(req.no, 0), fe2 = checkFoto(req.foto, true); if (fe2) return err(fe2, 'foto');
+      if (!store.peserta.some(function (p) { return p.no === sn && norm(p.nama) === norm(req.nama); })) return err('Peserta tidak ditemui.');
+      if (env.putFoto) env.putFoto(sn, req.foto);
+      return { ok: true };
+    }
 
     case 'cek': {
       var cn = toInt(req.no, 0), ada = store.peserta.some(function (p) { return p.no === cn && norm(p.nama) === norm(req.nama); });
@@ -2803,7 +2809,7 @@ function handle(store, req, env) {
     case 'info':
       return { ok: true, total: cfg.total, registered: store.peserta.length, voteOpen: !!cfg.voteOpen, units: UNITS };
 
-    case 'register': return doRegister(store, req, env, true);
+    case 'register': return doRegister(store, req, env, !req.lateFoto);
 
     case 'adminAdd': return doRegister(store, req, env);
 
@@ -2966,16 +2972,23 @@ function demoCall(req) {
   delete res._added;
   return res;
 }
+// ===== Penghalaan tanpa muat semula (peralihan halaman serta-merta) =====
+let EPOCH = 0; const CLEAN = [];
+const every = (fn, ms) => { const t = setInterval(fn, ms); CLEAN.push(() => clearInterval(t)); return t; };
+const listen = (tg, ev, fn, o) => { tg.addEventListener(ev, fn, o); CLEAN.push(() => tg.removeEventListener(ev, fn, o)); };
 async function api(action, data) {
+  const ep = EPOCH;
   const r = await _api(action, data);
+  if (ep !== EPOCH) return new Promise(() => { }); // halaman sudah ditinggalkan: abaikan jawapan lama
+
   if (r && r.code === 'pin' && action !== 'auth') { SS.del('pin'); SS.del('dash'); SS.del('drawS'); SS.del('bestR'); location.reload(); }
   return r;
 }
 async function _api(action, data) {
   const req = Object.assign({ action, pin: SS.get('pin') || '' }, data || {});
   const READ = ['info', 'voteInfo', 'adminList', 'drawState', 'results', 'ping', 'foto', 'cek'];
-  const RETRY = READ.concat(['register', 'vote', 'adminAdd', 'setConfig', 'setCalon']);
-  if (DEMO) { await sleep(120); return JSON.parse(JSON.stringify(demoCall(req))); }
+  const RETRY = READ.concat(['register', 'vote', 'adminAdd', 'setConfig', 'setCalon', 'setFoto']);
+  if (DEMO) { await sleep(30); return JSON.parse(JSON.stringify(demoCall(req))); }
   const once = async () => {
     const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 25000);
     try {
@@ -3171,8 +3184,8 @@ function enableFit() {
   document.body.classList.add('fitscr');
   if (!$('.backdash') && (SS.get('pin') || LS.get('adm', false))) { const b = document.createElement('a'); b.className = 'btn ghost sm backdash noprint'; b.href = pageUrl('dashboard'); b.textContent = '← Dashboard'; document.body.appendChild(b); }
   let t = 0; const go = () => { cancelAnimationFrame(t); t = requestAnimationFrame(fitScreen); };
-  addEventListener('resize', go); addEventListener('orientationchange', go);
-  new MutationObserver(go).observe($('#app'), { childList: true, subtree: true });
+  listen(window, 'resize', go); listen(window, 'orientationchange', go);
+  const mo = new MutationObserver(go); mo.observe($('#app'), { childList: true, subtree: true }); CLEAN.push(() => { mo.disconnect(); cancelAnimationFrame(t); });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(go);
   go();
 }
@@ -3265,17 +3278,31 @@ async function pgDaftar() {
       if (!jantina) return $('#m').innerHTML = '<div class="msg err">Sila pilih jantina anda.</div>';
       if (!foto) return $('#m').innerHTML = '<div class="msg err">Selfie wajib. Sila tekan butang kamera untuk ambil gambar.</div>';
       pending(nama, unit);
-      // animasi sekurang-kurangnya 1.3s supaya terasa serta-merta & menyeronokkan walaupun pelayan perlahan
-      const [r] = await Promise.all([api('register', { nama, unit, jantina, foto }), sleep(1300)]);
+      // Daftar dahulu (cepat, tanpa gambar); selfie dimuat naik di latar selepas nombor keluar.
+      const [r] = await Promise.all([api('register', { nama, unit, jantina, lateFoto: true }), sleep(800)]);
       clearInterval(timer);
-      if (r.ok) { if (!DEMO) LS.set('reg', { no: r.no, nama: r.nama, unit: r.unit }); ticket(r, r.existing); }
+      if (r.ok) {
+        if (!DEMO) LS.set('reg', { no: r.no, nama: r.nama, unit: r.unit });
+        ticket(r, r.existing);
+        if (!r.existing) { LS.set('pendfoto', { no: r.no, nama: r.nama, foto }); sendFoto(); }
+      }
       else form({ nama, unit, jantina, foto, error: r.error });
     };
   }
+  async function sendFoto() {
+    for (let t = 0; t < 6; t++) {
+      const p = LS.get('pendfoto', null); if (!p) return;
+      const r = await api('setFoto', { no: p.no, nama: p.nama, foto: p.foto });
+      if (r.ok) { try { localStorage.removeItem('an_pendfoto'); } catch (e) { } return; }
+      if (r.code === 'foto') { try { localStorage.removeItem('an_pendfoto'); } catch (e) { } return; }
+      await sleep(1500 * (t + 1));
+    }
+  }
+  if (LS.get('pendfoto', null)) sendFoto();
   function pending(nama, unit) {
     $('#card').innerHTML = `<div class="ticket"><div class="hi">Menjana nombor bertuah anda…</div><div class="nm">${esc(nama.toUpperCase())}</div><div class="un">${esc(unit)}</div>
     <div class="lab">No. Cabutan Bertuah Anda</div><div class="bignum spinning" id="pn">00</div></div>`;
-    let last = 0; timer = setInterval(() => { let x; do { x = 1 + Math.floor(Math.random() * 60); } while (x === last); last = x; const el = $('#pn'); if (el) el.textContent = String(x).padStart(2, '0'); }, 75);
+    let last = 0; timer = every(() => { let x; do { x = 1 + Math.floor(Math.random() * 60); } while (x === last); last = x; const el = $('#pn'); if (el) el.textContent = String(x).padStart(2, '0'); }, 75);
   }
   function ticket(r, again) {
     const no = String(r.no).padStart(2, '0');
@@ -3428,8 +3455,8 @@ async function pgDashboard() {
     };
   }
   draw(); refresh();
-  setInterval(() => { if (document.hidden) return; if (document.activeElement && ['INPUT', 'SELECT'].includes(document.activeElement.tagName)) return; refresh(); }, 15000);
-  setInterval(() => api('ping'), 240000);
+  every(() => { if (document.hidden) return; if (document.activeElement && ['INPUT', 'SELECT'].includes(document.activeElement.tagName)) return; refresh(); }, 15000);
+  every(() => api('ping'), 240000);
 }
 
 /* ============ HALAMAN: CABUTAN ============ */
@@ -3530,13 +3557,13 @@ async function pgCabutan() {
     paint(true); $('#go').disabled = false; busy = false;
   }
   $('#go').onclick = draw;
-  document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && !document.querySelector('.modal') && !['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(document.activeElement.tagName)) { e.preventDefault(); draw(); } });
+  listen(document, 'keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && !document.querySelector('.modal') && !['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(document.activeElement.tagName)) { e.preventDefault(); draw(); } });
   $('#go').disabled = true; paint(); $('#go').disabled = true;
   reload().then(ok => {
     if (ok) { paint(); $('#go').disabled = false; }
     else $('#warn').innerHTML = '<div class="msg err" style="max-width:520px;margin:10px auto">Tidak dapat memuatkan data cabutan. Semak internet dan muat semula halaman.</div>';
   });
-  setInterval(() => api('ping'), 240000);
+  every(() => api('ping'), 240000);
 }
 
 /* ============ HALAMAN: BEST DRESS (PENTAS) ============ */
@@ -3567,14 +3594,39 @@ async function pgBest() {
     document.querySelectorAll('[data-rev]').forEach(b => b.onclick = async () => { await load(); revealed[b.dataset.rev] = true; Snd.unlock(); Snd.fanfare(true); draw(); FX.big(); });
   }
   draw(); load().then(draw);
-  setInterval(() => api('ping'), 240000);
+  every(() => api('ping'), 240000);
 }
 
 /* ============ ROUTER ============ */
-const PAGE = (new URLSearchParams(location.search).get('page') || 'daftar').toLowerCase();
 const ROUTES = { daftar: pgDaftar, undi: pgUndi, poster: () => pgPoster('daftar'), posterundi: () => pgPoster('undi'), dashboard: pgDashboard, admin: pgDashboard, cabutan: pgCabutan, draw: pgCabutan, bestdress: pgBest };
+const pageOf = () => (new URLSearchParams(location.search).get('page') || 'daftar').toLowerCase();
+function leavePage() {
+  EPOCH++;
+  while (CLEAN.length) { try { CLEAN.pop()(); } catch (e) { } }
+  try { Snd.stopSfx(); Snd.spinMusic(false); if (Snd.on) Snd.toggle(); } catch (e) { }
+  document.querySelectorAll('.modal,.backdash').forEach(n => n.remove());
+  document.body.className = ''; document.body.style.overflowY = ''; app.style.zoom = ''; app.innerHTML = '';
+  window.scrollTo(0, 0);
+}
+function runPage() {
+  const f = ROUTES[pageOf()] || pgDaftar;
+  Promise.resolve().then(f).catch(e => { console.error(e); app.innerHTML = `<section class="card"><h2>Ralat</h2><p>${esc(e.message || e)}</p></section>`; });
+}
+function navigate(href, push) {
+  const go = () => { leavePage(); if (push) history.pushState(null, '', href); runPage(); };
+  if (document.startViewTransition) document.startViewTransition(go); else go();
+}
+document.addEventListener('click', e => {
+  const a = e.target.closest && e.target.closest('a[href]');
+  if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (a.target && a.target !== '_self')) return;
+  let u; try { u = new URL(a.href, location.href); } catch (x) { return; }
+  if (u.origin !== location.origin || u.pathname !== location.pathname || !u.searchParams.get('page') || u.searchParams.get('baru')) return;
+  e.preventDefault();
+  if (u.href !== location.href) navigate(u.href, true);
+});
+addEventListener('popstate', () => navigate(location.href, false));
 demoBanner();
-(ROUTES[PAGE] || pgDaftar)().catch(e => { console.error(e); app.innerHTML = `<section class="card"><h2>Ralat</h2><p>${esc(e.message || e)}</p></section>`; });
+runPage();
 </script>
 </body>
 </html>
