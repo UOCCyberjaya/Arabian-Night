@@ -247,7 +247,7 @@ td select{padding:6px 8px;font-size:.8rem;border-radius:10px}
 .wl .n{font-weight:800;color:var(--teal);min-width:34px}
 .modal{position:fixed;inset:0;z-index:80;background:rgba(3,2,16,.8);display:grid;place-items:center;padding:16px}
 .modal .box{background:#120b36;border:2px solid var(--gold);border-radius:22px;padding:22px;max-width:620px;width:100%;max-height:92vh;overflow:auto}
-.srow{display:grid;grid-template-columns:1.4fr .7fr .7fr auto;gap:8px;margin-top:8px}
+.srow{display:grid;grid-template-columns:1.1fr .6fr .6fr 1.4fr auto;gap:8px;margin-top:8px}
 .srow input{padding:9px 10px;font-size:.9rem}
 #fx{position:fixed;inset:0;z-index:70;pointer-events:none;width:100%;height:100%}
 .crown{font-size:clamp(3.5rem,12vw,7rem);animation:floaty 3s ease-in-out infinite;filter:drop-shadow(0 0 25px rgba(242,193,78,.8))}
@@ -282,6 +282,13 @@ body.cmp .tiles{display:grid!important;grid-template-columns:repeat(2,1fr)}
 @media(min-width:720px){body.cmp .tiles{grid-template-columns:repeat(4,1fr)!important}}
 body.cmp .tile{padding:10px}
 body.cmp .hero .info{gap:8px!important;margin-top:8px!important;zoom:.8}
+body.fitscr{display:flex;align-items:center;justify-content:center;min-height:100dvh;overflow:hidden;--fw:640px}
+body.fitscr.split-page{--fw:1100px}
+body.fitscr #app{max-width:none!important;width:min(100vw,var(--fw));padding:12px 14px!important;animation:none;flex:none}
+body.fitscr .split{min-height:0!important}
+body.fitscr .lanterns,body.fitscr #moon{display:none!important}
+.backdash{position:fixed;top:10px;left:10px;z-index:50;font-size:.7rem!important;padding:6px 12px!important;opacity:.75}
+.backdash:hover{opacity:1}
 </style>
 </head>
 <body>
@@ -2618,14 +2625,14 @@ function err(m, c) { return { ok: false, error: m, code: c || 'err' }; }
 
 function defaultConfig() {
   return {
-    total: 59,
+    total: 60,
     voteOpen: false,
     sessions: [
-      { nama: 'Sesi 1', dari: 59, hingga: 55 },
-      { nama: 'Sesi 2', dari: 54, hingga: 40 },
-      { nama: 'Sesi 3', dari: 39, hingga: 20 },
-      { nama: 'Sesi 4', dari: 19, hingga: 4 },
-      { nama: 'Hadiah Utama', dari: 3, hingga: 1 }
+      { nama: 'Sesi 1', dari: 60, hingga: 56, hadiah: '' },
+      { nama: 'Sesi 2', dari: 55, hingga: 41, hadiah: '' },
+      { nama: 'Sesi 3', dari: 40, hingga: 21, hadiah: '' },
+      { nama: 'Sesi 4', dari: 20, hingga: 4, hadiah: '' },
+      { nama: 'Hadiah Utama', dari: 3, hingga: 1, hadiah: '' }
     ],
     prizes: { '3': 'Hadiah Podium No. 3', '2': 'Hadiah Podium No. 2', '1': 'Hadiah Podium No. 1' }
   };
@@ -2637,10 +2644,30 @@ function assignedMap(store) {
   store.cabutan.forEach(function (c) { if (!c.absent) m[c.cabutan] = 1; });
   return m;
 }
+// Cabutan hanya melibatkan peserta yang BENAR-BENAR berdaftar: kira turun dari bilangan berdaftar (maks. jumlah).
+function drawTop(store) { return Math.min(store.config.total, store.peserta.length); }
 function nextCabutan(store) {
   var a = assignedMap(store);
-  for (var n = store.config.total; n >= 1; n--) { if (!a[n]) return n; }
+  for (var n = drawTop(store); n >= 1; n--) { if (!a[n]) return n; }
   return 0;
+}
+// Sesi sebenar: potong julat sesi mengikut bilangan berdaftar, buang sesi kosong, nomborkan semula nama "Sesi N".
+function effSessions(cfg, reg) {
+  var top = Math.min(cfg.total, reg), out = [];
+  (cfg.sessions || []).slice().sort(function (x, y) { return y.dari - x.dari; }).forEach(function (s) {
+    var d = Math.min(s.dari, top);
+    if (d >= s.hingga) out.push({ nama: s.nama, dari: d, hingga: s.hingga, hadiah: s.hadiah || '' });
+  });
+  var k = 0;
+  out.forEach(function (s) { if (/^Sesi \d+$/.test(s.nama)) s.nama = 'Sesi ' + (++k); });
+  return out;
+}
+// Naik taraf tetapan lama (59) kepada lalai baharu (60) tanpa menyentuh hadiah.
+function migrateConfig(store) {
+  var c = store.config, ss = c.sessions || [];
+  if (c.total === 59 && ss.length === 5 && ss[0].dari === 59 && ss[0].hingga === 55 && ss[4].hingga === 1) {
+    c.total = 60; c.sessions = defaultConfig().sessions;
+  }
 }
 function drawnMap(store) {
   var m = {};
@@ -2667,7 +2694,7 @@ function sanitizeConfig(inp, cur) {
       var s = inp.sessions[i];
       var d = toInt(s.dari, 0), h = toInt(s.hingga, 0);
       if (d < 1 || h < 1 || h > d) return null;
-      ss.push({ nama: clean(s.nama).slice(0, 40) || ('Sesi ' + (i + 1)), dari: d, hingga: h });
+      ss.push({ nama: clean(s.nama).slice(0, 40) || ('Sesi ' + (i + 1)), dari: d, hingga: h, hadiah: clean(s.hadiah).slice(0, 90) });
     }
     c.sessions = ss;
   }
@@ -2716,6 +2743,7 @@ function summary(store) {
 }
 
 function handle(store, req, env) {
+  migrateConfig(store);
   var a = req.action, cfg = store.config;
   var open = { info: 1, voteInfo: 1, register: 1, vote: 1, ping: 1 };
   if (!open[a] && String(req.pin == null ? '' : req.pin) !== String(env.pin)) return err('PIN tidak betul.', 'pin');
@@ -2772,7 +2800,7 @@ function handle(store, req, env) {
     }
 
     case 'drawState':
-      return { ok: true, config: cfg, cabutan: store.cabutan, next: nextCabutan(store), pool: poolOf(store).map(function (p) { return p.no; }), registered: store.peserta.length };
+      return { ok: true, config: cfg, sessions: effSessions(cfg, store.peserta.length), cabutan: store.cabutan, next: nextCabutan(store), pool: poolOf(store).map(function (p) { return p.no; }), registered: store.peserta.length };
 
     case 'draw': {
       var nx = nextCabutan(store);
@@ -3072,6 +3100,23 @@ function hero() {
     <div class="ib2">${ic.pin}<small>Lokasi</small><strong>Putrajaya</strong><span>Marriott Hotel</span></div>
   </div></header>`;
 }
+function fitScreen() {
+  const a = $('#app'); if (!a) return;
+  a.style.zoom = 1;
+  const w = a.offsetWidth, h = a.scrollHeight;
+  let z = Math.min(innerWidth / w, innerHeight / h, 1.8); z = Math.max(z, .55);
+  a.style.zoom = z;
+  document.body.style.overflowY = (h * z > innerHeight + 2) ? 'auto' : 'hidden';
+}
+function enableFit() {
+  document.body.classList.add('fitscr');
+  if (!$('.backdash')) { const b = document.createElement('a'); b.className = 'btn ghost sm backdash noprint'; b.href = pageUrl('dashboard'); b.textContent = '← Dashboard'; document.body.appendChild(b); }
+  let t = 0; const go = () => { cancelAnimationFrame(t); t = requestAnimationFrame(fitScreen); };
+  addEventListener('resize', go); addEventListener('orientationchange', go);
+  new MutationObserver(go).observe($('#app'), { childList: true, subtree: true });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(go);
+  go();
+}
 function demoBanner() { if (DEMO && !$('.demo')) { const d = document.createElement('div'); d.className = 'demo noprint'; d.textContent = 'MOD DEMO — data disimpan dalam pelayar ini sahaja (belum disambung ke Google Sheet)'; document.body.appendChild(d); } }
 function navLinks(cur) {
   const L = [['dashboard', 'Dashboard'], ['cabutan', 'Cabutan Bertuah'], ['bestdress', 'Best Dress'], ['poster', 'QR Daftar'], ['posterundi', 'QR Best Dress'], ['daftar', 'Borang Daftar'], ['undi', 'Borang Undi']];
@@ -3101,7 +3146,7 @@ function fmtTime(iso) { try { return new Date(iso).toLocaleTimeString('ms-MY', {
 
 /* ============ HALAMAN: DAFTAR ============ */
 async function pgDaftar() {
-  document.body.classList.add('split-page', 'fit');
+  document.body.classList.add('split-page', 'fit'); enableFit();
   buildBg(false);
   // Halaman & borang dipaparkan SERTA-MERTA; maklumat kuota menyusul selepas pelayan menjawab.
   app.innerHTML = `<div class="split">${hero()}<div class="col"><section class="card arch" id="card"></section><div class="foot"><div class="oline"><i></i><b>✦</b><i></i></div><div class="f1">Kelab Bahagian Pengurusan</div><div class="f2">· SPP ·</div></div></div></div>`;
@@ -3139,7 +3184,7 @@ async function pgDaftar() {
   function pending(nama, unit) {
     $('#card').innerHTML = `<div class="ticket"><div class="hi">Menjana nombor bertuah anda…</div><div class="nm">${esc(nama.toUpperCase())}</div><div class="un">${esc(unit)}</div>
     <div class="lab">No. Cabutan Bertuah Anda</div><div class="bignum spinning" id="pn">00</div></div>`;
-    let last = 0; timer = setInterval(() => { let x; do { x = 1 + Math.floor(Math.random() * 59); } while (x === last); last = x; const el = $('#pn'); if (el) el.textContent = String(x).padStart(2, '0'); }, 75);
+    let last = 0; timer = setInterval(() => { let x; do { x = 1 + Math.floor(Math.random() * 60); } while (x === last); last = x; const el = $('#pn'); if (el) el.textContent = String(x).padStart(2, '0'); }, 75);
   }
   function ticket(r, again) {
     const no = String(r.no).padStart(2, '0');
@@ -3155,7 +3200,7 @@ async function pgDaftar() {
 
 /* ============ HALAMAN: UNDI ============ */
 async function pgUndi() {
-  document.body.classList.add('fit'); buildBg(false);
+  document.body.classList.add('fit'); enableFit(); buildBg(false);
   app.innerHTML = `${hero()}<section class="card" id="card"><div class="center small">Memuatkan…</div></section>`;
   const [vi] = await Promise.all([api('voteInfo')]);
   let reg = LS.get('reg', null);
@@ -3263,8 +3308,9 @@ async function pgCabutan() {
   document.body.classList.add('stage'); buildBg(true);
   let S; try { S = JSON.parse(SS.get('drawS') || 'null'); } catch (e) { S = null; }
   S = S || { config: defaultConfig(), cabutan: [], next: 0, pool: [], registered: 0 };
-  const sessOf = n => S.config.sessions.find(s => n <= s.dari && n >= s.hingga);
-  const prizeOf = n => (S.config.prizes && S.config.prizes[String(n)]) || '';
+  const SES = () => S.sessions || effSessions(S.config, S.registered || 0);
+  const sessOf = n => SES().find(s => n <= s.dari && n >= s.hingga);
+  const prizeOf = n => (S.config.prizes && S.config.prizes[String(n)]) || ((sessOf(n) || {}).hadiah) || '';
   let busy = false, pending = null;
   async function reload() { const r = await api('drawState'); if (r.ok) { S = r; SS.set('drawS', JSON.stringify(r)); } return r.ok; }
   app.innerHTML = `<div class="stage-wrap">
@@ -3279,7 +3325,7 @@ async function pgCabutan() {
   function pad(n) { return String(n).padStart(2, '0'); }
   function paint(keep) {
     const n = S.next, ses = n ? sessOf(n) : null;
-    $('#pills').innerHTML = S.config.sessions.map(s => { const done = S.cabutan.filter(c => !c.absent && c.cabutan <= s.dari && c.cabutan >= s.hingga).length === (s.dari - s.hingga + 1); const cur = ses === s; return `<span class="pill ${cur ? 'cur' : done ? 'done' : ''}">${esc(s.nama)} · ${s.dari}–${s.hingga}</span>`; }).join('');
+    $('#pills').innerHTML = SES().map(s => { const done = S.cabutan.filter(c => !c.absent && c.cabutan <= s.dari && c.cabutan >= s.hingga).length === (s.dari - s.hingga + 1); const cur = ses === s; return `<span class="pill ${cur ? 'cur' : done ? 'done' : ''}">${esc(s.nama)} · ${s.dari}–${s.hingga}</span>`; }).join('');
     if (!n) { $('#sesi').textContent = 'Tamat'; $('#cn').textContent = '✦'; $('#prize').textContent = 'Tahniah kepada semua pemenang!'; $('#go').classList.add('hide'); return; }
     $('#go').classList.remove('hide');
     if (!keep) { $('#sesi').textContent = ses ? `${ses.nama} · Cabutan ${ses.dari} → ${ses.hingga}` : 'Cabutan'; $('#cn').textContent = n; $('#prize').textContent = prizeOf(n) ? '🎁 ' + prizeOf(n) : ''; }
@@ -3287,11 +3333,11 @@ async function pgCabutan() {
     const newSes = S.cabutan.length && ses && lastInSes && lastInSes !== ses;
     $('#go').textContent = newSes ? `Mula ${ses.nama} — Cabut No. ${n}` : `Cabut No. ${n}`;
     const short = S.pool.length < n;
-    $('#warn').innerHTML = short ? `<div class="msg err" style="max-width:520px;margin:10px auto">Amaran: hanya ${S.pool.length} peserta layak berbaki tetapi cabutan tinggal ${n}. Ubah “Jumlah cabutan” dalam ⚙ Tetapan.</div>` : '';
+    $('#warn').innerHTML = short ? `<div class="msg err" style="max-width:520px;margin:10px auto">Amaran: hanya ${S.pool.length} peserta layak berbaki tetapi cabutan tinggal ${n}.</div>` : '';
   }
   function showList() {
     const L = S.cabutan.slice().sort((a, b) => b.cabutan - a.cabutan);
-    $('#drawer').innerHTML = `<h2 style="font-family:var(--disp);color:var(--gold);margin-bottom:6px">Senarai Pemenang</h2><p class="small">${S.cabutan.filter(c => !c.absent).length} / ${S.config.total}</p>${L.map(c => `<div class="wl" style="${c.absent ? 'opacity:.4;text-decoration:line-through' : ''}"><span class="c">#${c.cabutan}</span><span class="n">${pad(c.no)}</span><span><b>${esc(c.nama)}</b><br><span class="small">${esc(c.unit)}</span></span></div>`).join('') || '<p class="small">Belum ada.</p>'}<button class="btn ghost sm block" id="cl">Tutup</button>`;
+    $('#drawer').innerHTML = `<h2 style="font-family:var(--disp);color:var(--gold);margin-bottom:6px">Senarai Pemenang</h2><p class="small">${S.cabutan.filter(c => !c.absent).length} / ${Math.min(S.config.total, S.registered || S.config.total)}</p>${L.map(c => `<div class="wl" style="${c.absent ? 'opacity:.4;text-decoration:line-through' : ''}"><span class="c">#${c.cabutan}</span><span class="n">${pad(c.no)}</span><span><b>${esc(c.nama)}</b><br><span class="small">${esc(c.unit)}</span></span></div>`).join('') || '<p class="small">Belum ada.</p>'}<button class="btn ghost sm block" id="cl">Tutup</button>`;
     $('#cl').onclick = () => $('#drawer').classList.remove('open');
   }
   function settings() {
@@ -3299,17 +3345,17 @@ async function pgCabutan() {
     const prizeTxt = Object.keys(c.prizes || {}).sort((a, b) => b - a).map(k => `${k}=${c.prizes[k]}`).join('\n');
     m.innerHTML = `<div class="box"><h2 style="font-family:var(--disp);color:var(--gold)">Tetapan Cabutan</h2>
     <label>Jumlah cabutan / nombor (mula kira turun dari nombor ini)</label><input id="tt" type="number" min="1" value="${c.total}">
-    <label>Sesi (nama · dari · hingga)</label><div id="ss"></div><button class="btn ghost sm" id="adds" style="margin-top:8px">+ Tambah sesi</button>
-    <label>Senarai hadiah — satu baris satu hadiah, format <code>no=nama hadiah</code> (cth <code>59=Baucar RM30</code>)</label><textarea id="pz" rows="7" placeholder="59=Baucar RM30&#10;3=Hadiah Podium No. 3">${esc(prizeTxt)}</textarea>
+    <label>Sesi (nama · dari · hingga · hadiah sesi). Jika peserta berdaftar kurang daripada jumlah, sesi dipotong automatik mengikut bilangan berdaftar sahaja.</label><div id="ss"></div><button class="btn ghost sm" id="adds" style="margin-top:8px">+ Tambah sesi</button>
+    <label>Senarai hadiah — satu baris satu hadiah, format <code>no=nama hadiah</code> (cth <code>60=Baucar RM30</code>)</label><textarea id="pz" rows="7" placeholder="60=Baucar RM30&#10;3=Hadiah Podium No. 3">${esc(prizeTxt)}</textarea>
     <label>Muzik latar (pilihan: pilih fail MP3 sendiri; jika tidak, muzik Arab automatik digunakan)</label><input type="file" id="mf" accept="audio/*">
     <div id="sm"></div><div class="row" style="margin-top:16px"><button class="btn sm" id="sv">Simpan</button><button class="btn ghost sm" id="sx">Batal</button></div></div>`;
     document.body.appendChild(m);
-    const addRow = s => { const r = document.createElement('div'); r.className = 'srow'; r.innerHTML = `<input value="${esc(s.nama)}" class="a"><input type="number" value="${s.dari}" class="b"><input type="number" value="${s.hingga}" class="c"><button class="btn ghost sm" style="padding:6px 12px">✕</button>`; r.querySelector('button').onclick = () => r.remove(); $('#ss', m).appendChild(r); };
-    c.sessions.forEach(addRow); $('#adds', m).onclick = () => addRow({ nama: 'Sesi ' + ($('#ss', m).children.length + 1), dari: 1, hingga: 1 });
+    const addRow = s => { const r = document.createElement('div'); r.className = 'srow'; r.innerHTML = `<input value="${esc(s.nama)}" class="a"><input type="number" value="${s.dari}" class="b"><input type="number" value="${s.hingga}" class="c"><input value="${esc(s.hadiah || '')}" class="d" placeholder="Hadiah sesi"><button class="btn ghost sm" style="padding:6px 12px">✕</button>`; r.querySelector('button').onclick = () => r.remove(); $('#ss', m).appendChild(r); };
+    c.sessions.forEach(addRow); $('#adds', m).onclick = () => addRow({ nama: 'Sesi ' + ($('#ss', m).children.length + 1), dari: 1, hingga: 1, hadiah: '' });
     $('#sx', m).onclick = () => m.remove();
     $('#mf', m).onchange = e => { if (e.target.files[0]) Snd.setFile(e.target.files[0]); };
     $('#sv', m).onclick = async () => {
-      const sessions = [...$('#ss', m).children].map(r => ({ nama: r.querySelector('.a').value, dari: r.querySelector('.b').value, hingga: r.querySelector('.c').value }));
+      const sessions = [...$('#ss', m).children].map(r => ({ nama: r.querySelector('.a').value, dari: r.querySelector('.b').value, hingga: r.querySelector('.c').value, hadiah: r.querySelector('.d').value }));
       const prizes = {}; $('#pz', m).value.split('\n').forEach(l => { const i = l.indexOf('='); if (i > 0) { const k = l.slice(0, i).trim(), v = l.slice(i + 1).trim(); if (k && v) prizes[k] = v; } });
       const r = await api('setConfig', { config: { total: $('#tt', m).value, sessions, prizes } });
       if (!r.ok) return $('#sm', m).innerHTML = `<div class="msg err">${esc(r.error)}</div>`;
