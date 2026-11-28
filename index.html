@@ -309,6 +309,12 @@ body.fit .gopt span{padding:9px 6px}
 @media(max-width:700px){.winner .wt{text-align:center}}
 .winner .wph{flex:none;width:clamp(120px,25vh,280px);height:clamp(120px,25vh,280px);border-radius:50%;object-fit:cover;border:4px solid var(--gold);box-shadow:0 0 34px rgba(242,193,78,.7);display:block;background:rgba(8,5,30,.6)}
 .winner .wph.ini{display:grid;place-items:center;font-family:var(--disp);font-size:3rem;color:var(--gold)}
+a,button,.btn,select,label{touch-action:manipulation}
+.btn:active:not(:disabled){transform:scale(.97)}
+.btn:disabled{opacity:.6;cursor:wait}
+@view-transition{navigation:auto}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.22s}
+html{scroll-behavior:smooth}
 </style>
 </head>
 <body>
@@ -3280,7 +3286,7 @@ async function pgUndi() {
   const done = reg && LS.get('voted_' + reg.no, false);
   if (!vi.ok) return $('#card').innerHTML = `<div class="msg err">${esc(vi.error)}</div>`;
   if (!vi.voteOpen) return $('#card').innerHTML = `<h2>Undian Best Dress</h2><div class="center"><div class="crown">🌙</div><p>Undian <b>belum dibuka</b> atau telah ditutup.<br>Tunggu pengumuman daripada pengacara majlis.</p></div>`;
-  if (done) return $('#card').innerHTML = `<div class="center"><div class="crown">♛</div><h2>Terima kasih!</h2><p>Undi anda telah direkodkan. Nantikan pengumuman <b>Raja &amp; Queen of the Night</b>.</p></div>`;
+  if (done) return $('#card').innerHTML = `<div class="center"><div class="crown">♛</div><h2>Terima kasih!</h2><p>Undi anda telah direkodkan. Nantikan pengumuman <b>Sultan &amp; Queen of the Night</b>.</p></div>`;
   $('#card').innerHTML = `<h2>♛ Undian Best Dress ♛</h2><p class="small center">Pilih <b>Sultan of the Night</b> dan <b>Queen of the Night</b> berpakaian terbaik. Satu undi bagi setiap peserta.</p>
   <form id="f"><div id="idbox"></div>
   <label>Sultan of the Night</label><div class="clist" id="lr"></div>
@@ -3298,7 +3304,7 @@ async function pgUndi() {
     if (!raja && !perm) return $('#m').innerHTML = '<div class="msg err">Sila pilih sekurang-kurangnya satu calon.</div>';
     $('#sub').disabled = true; $('#sub').textContent = 'Menghantar…';
     const r = await api('vote', { voterNo: vno, voterNama: vnm, raja, permaisuri: perm });
-    if (r.ok || r.code === 'dup') { LS.set('voted_' + vno, true); FX.burst(innerWidth / 2, innerHeight / 2, 100, 9); $('#card').innerHTML = `<div class="center"><div class="crown">♛</div><h2>${r.ok ? 'Terima kasih!' : 'Sudah mengundi'}</h2><p>${r.ok ? 'Undi anda telah direkodkan.' : 'Undi anda telah direkodkan sebelum ini.'}<br>Nantikan pengumuman <b>Raja &amp; Queen of the Night</b>.</p></div>`; }
+    if (r.ok || r.code === 'dup') { LS.set('voted_' + vno, true); FX.burst(innerWidth / 2, innerHeight / 2, 100, 9); $('#card').innerHTML = `<div class="center"><div class="crown">♛</div><h2>${r.ok ? 'Terima kasih!' : 'Sudah mengundi'}</h2><p>${r.ok ? 'Undi anda telah direkodkan.' : 'Undi anda telah direkodkan sebelum ini.'}<br>Nantikan pengumuman <b>Sultan &amp; Queen of the Night</b>.</p></div>`; }
     else { $('#sub').disabled = false; $('#sub').textContent = 'Hantar Undi'; $('#m').innerHTML = `<div class="msg err">${esc(r.error)}</div>`; }
   };
 }
@@ -3338,15 +3344,22 @@ async function pgDashboard() {
   const blank = { peserta: [], cabutan: [], undiCount: 0, config: defaultConfig(), byUnit: {}, next: 0 };
   let last = SS.get('dash') || '', loading = !last, q = '';
   let d = last ? JSON.parse(last) : blank;
+  let pend = 0;
+  const bg = async fn => { pend++; try { return await fn(); } finally { pend--; } };
   async function refresh(redraw) {
-    const r = await api('adminList'); if (!r.ok) return;
+    if (pend) return;
+    const r = await api('adminList'); if (!r.ok || pend) return;
     const j = JSON.stringify(r), was = loading; loading = false;
     if (j !== last || was) { last = j; d = r; SS.set('dash', j); if (redraw !== false) draw(); }
   }
   function draw() {
+    const sy = window.scrollY;
+    const keep = ['#an', '#au', '#ag'].map(i => { const e = $(i); return e ? e.value : ''; });
     const maxU = Math.max(1, ...Object.values(d.byUnit));
-    const rows = d.peserta.filter(p => !q || (p.nama + p.unit + p.no).toLowerCase().includes(q.toLowerCase()));
+    const getRows = () => d.peserta.filter(p => !q || (p.nama + p.unit + p.no).toLowerCase().includes(q.toLowerCase()));
     const won = {}; d.cabutan.forEach(c => { if (!c.absent) won[c.no] = c.cabutan; });
+    const rowsHtml = () => getRows().map(p => `<tr><td><b style="color:var(--gold)">${String(p.no).padStart(2, '0')}</b></td><td>${esc(p.nama)}</td><td>${esc(p.unit)}</td><td>${p.jantina || '—'}</td><td>${fmtTime(p.masa)}</td><td>${won[p.no] ? '#' + won[p.no] : '—'}</td>
+    <td><select data-calon="${p.no}"><option value="">—</option><option value="raja" ${p.calon === 'raja' ? 'selected' : ''}>Calon Sultan</option><option value="permaisuri" ${p.calon === 'permaisuri' ? 'selected' : ''}>Calon Queen</option></select></td><td><button class="btn ghost sm" data-del="${p.no}" style="padding:6px 10px">✕</button></td></tr>`).join('') || '<tr><td colspan="8" class="small">Tiada peserta.</td></tr>';
     app.innerHTML = `${hero()}${navLinks('dashboard')}
     <div class="tiles"><div class="tile"><b>${d.peserta.length}</b><span>Peserta berdaftar</span></div><div class="tile"><b>${d.config.total - d.peserta.length}</b><span>Nombor berbaki</span></div><div class="tile"><b>${d.cabutan.filter(c => !c.absent).length}/${d.config.total}</b><span>Cabutan selesai</span></div><div class="tile"><b>${d.undiCount}</b><span>Pengundi Best Dress</span></div></div>
     <div class="grid2" style="margin-top:14px">
@@ -3359,20 +3372,40 @@ async function pgDashboard() {
         <div class="dash"></div><div class="row"><button class="btn red sm" id="r1">Set semula cabutan</button><button class="btn red sm" id="r2">Set semula undi</button><button class="btn red sm" id="r3">Padam semua data</button></div>
       </section></div>
     <section class="card"><h2>Senarai Peserta${loading ? ' · memuatkan…' : ''}</h2><input id="srch" placeholder="Cari nama / unit / nombor…" value="${esc(q)}"><div class="scroll" style="margin-top:10px"><table><tr><th>No.</th><th>Nama</th><th>Unit</th><th>L/P</th><th>Masa</th><th>Cabutan</th><th>Calon</th><th></th></tr>
-    ${rows.map(p => `<tr><td><b style="color:var(--gold)">${String(p.no).padStart(2, '0')}</b></td><td>${esc(p.nama)}</td><td>${esc(p.unit)}</td><td>${p.jantina || '—'}</td><td>${fmtTime(p.masa)}</td><td>${won[p.no] ? '#' + won[p.no] : '—'}</td>
-    <td><select data-calon="${p.no}"><option value="">—</option><option value="raja" ${p.calon === 'raja' ? 'selected' : ''}>Calon Sultan</option><option value="permaisuri" ${p.calon === 'permaisuri' ? 'selected' : ''}>Calon Queen</option></select></td><td><button class="btn ghost sm" data-del="${p.no}" style="padding:6px 10px">✕</button></td></tr>`).join('') || '<tr><td colspan="8" class="small">Tiada peserta.</td></tr>'}</table></div></section>`;
-    $('#srch').oninput = e => { q = e.target.value; const pos = e.target.selectionStart; draw(); const s = $('#srch'); s.focus(); s.setSelectionRange(pos, pos); };
-    $('#tv').onclick = async () => { await api('setConfig', { config: { voteOpen: !d.config.voteOpen } }); refresh(); };
+    <tbody id="rb">${rowsHtml()}</tbody></table></div></section>`;
+    function bindRows() {
+    document.querySelectorAll('[data-calon]').forEach(s => s.onchange = () => { const p = d.peserta.find(x => String(x.no) === s.dataset.calon); if (p) p.calon = s.value; bg(() => api('setCalon', { no: s.dataset.calon, calon: s.value })); });
+    document.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { const p = d.peserta.find(x => String(x.no) === b.dataset.del); if (!confirm('Padam ' + p.nama + ' (No. ' + p.no + ')?')) return; d.peserta = d.peserta.filter(x => x !== p); d.byUnit[p.unit] = Math.max(0, (d.byUnit[p.unit] || 1) - 1); draw(); const r = await bg(() => api('adminDelete', { no: p.no })); if (!r.ok) alert(r.error); refresh(); });
+    }
+    ['#an', '#au', '#ag'].forEach((i, k) => { if (keep[k]) $(i).value = keep[k]; });
+    window.scrollTo(0, sy);
+    $('#srch').oninput = e => { q = e.target.value; $('#rb').innerHTML = rowsHtml(); bindRows(); };
+    $('#tv').onclick = () => {
+      const was = d.config.voteOpen; d.config.voteOpen = !was; draw();
+      bg(async () => { const r = await api('setConfig', { config: { voteOpen: !was } }); if (!r.ok) { d.config.voteOpen = was; draw(); alert(r.error); } }).then(() => refresh());
+    };
     $('#csv').onclick = () => {
       const lines = [['No', 'Nama', 'Unit', 'Jantina', 'Masa', 'Cabutan']].concat(d.peserta.map(p => [p.no, p.nama, p.unit, p.jantina || '', p.masa, won[p.no] || '']));
       const csv = '﻿' + lines.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\r\n');
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'peserta-arabian-night.csv'; document.body.appendChild(a); a.click(); a.remove();
     };
-    $('#fl').onclick = async () => { $('#fl').textContent = 'Memuatkan…'; await api('flush'); loading = true; await refresh(); };
-    $('#aa').onclick = async () => { const r = await api('adminAdd', { nama: $('#an').value, unit: $('#au').value, jantina: $('#ag').value }); if (r.ok) { refresh(); } else $('#am').innerHTML = `<div class="msg err">${esc(r.error)}</div>`; };
-    document.querySelectorAll('[data-calon]').forEach(s => s.onchange = async () => { await api('setCalon', { no: s.dataset.calon, calon: s.value }); });
-    document.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { const p = d.peserta.find(x => String(x.no) === b.dataset.del); if (!confirm('Padam ' + p.nama + ' (No. ' + p.no + ')?')) return; const r = await api('adminDelete', { no: p.no }); if (!r.ok) alert(r.error); refresh(); });
-    const rs = (id, what, msg) => { const el = $(id); if (el) el.onclick = async () => { if (what === 'semua' ? prompt('Taip PADAM untuk memadam SEMUA data peserta, selfie, cabutan dan undi:') !== 'PADAM' : !confirm(msg)) return; await api('reset', { what }); refresh(); }; };
+    $('#fl').onclick = async () => { $('#fl').disabled = true; $('#fl').textContent = 'Memuatkan…'; await api('flush'); loading = true; await refresh(); };
+    $('#aa').onclick = async () => {
+      const nama = $('#an').value, unit = $('#au').value, jantina = $('#ag').value, b = $('#aa');
+      if (nama.trim().length < 3) return $('#am').innerHTML = '<div class="msg err">Sila masukkan nama penuh.</div>';
+      if (!unit) return $('#am').innerHTML = '<div class="msg err">Sila pilih unit.</div>';
+      if (!jantina) return $('#am').innerHTML = '<div class="msg err">Sila pilih jantina.</div>';
+      b.disabled = true; b.textContent = 'Menambah…'; $('#am').innerHTML = '';
+      const r = await bg(() => api('adminAdd', { nama, unit, jantina }));
+      if (r.ok) {
+        if (!r.existing) { d.peserta.push({ no: r.no, nama: r.nama, unit: r.unit, jantina, masa: new Date().toISOString(), calon: '' }); d.byUnit[r.unit] = (d.byUnit[r.unit] || 0) + 1; }
+        ['#an', '#au', '#ag'].forEach(i => { $(i).value = ''; }); draw(); refresh();
+      } else { b.disabled = false; b.textContent = 'Tambah'; $('#am').innerHTML = `<div class="msg err">${esc(r.error)}</div>`; }
+    };
+    bindRows();
+    const rs = (id, what, msg) => { const el = $(id); if (el) el.onclick = async () => { if (what === 'semua' ? prompt('Taip PADAM untuk memadam SEMUA data peserta, selfie, cabutan dan undi:') !== 'PADAM' : !confirm(msg)) return;
+      if (what === 'cabutan') d.cabutan = []; else if (what === 'undi') d.undiCount = 0; else { d.peserta = []; d.cabutan = []; d.undiCount = 0; d.byUnit = {}; d.config.voteOpen = false; }
+      draw(); const r = await bg(() => api('reset', { what })); if (!r.ok) alert(r.error); refresh(); }; };
     rs('#r1', 'cabutan', 'Set semula semua keputusan cabutan?'); rs('#r2', 'undi', 'Padam semua undi Best Dress?'); rs('#r3', 'semua');
     const sd = $('#seed'); if (sd) sd.onclick = async () => {
       const N = ['Ahmad Faiz', 'Siti Nurhaliza', 'Muhammad Hafiz', 'Nur Aisyah', 'Mohd Azlan', 'Farah Najwa', 'Khairul Anuar', 'Nurul Huda', 'Zulkifli Hassan', 'Aina Sofea'], B = ['bin Abdullah', 'binti Ismail', 'bin Yusof', 'binti Hamid', 'bin Rahman'];
@@ -3445,9 +3478,10 @@ async function pgCabutan() {
     $('#sv', m).onclick = async () => {
       const sessions = [...$('#ss', m).children].map(r => ({ nama: r.querySelector('.a').value, dari: r.querySelector('.b').value, hingga: r.querySelector('.c').value, hadiah: r.querySelector('.d').value }));
       const prizes = {}; $('#pz', m).value.split('\n').forEach(l => { const i = l.indexOf('='); if (i > 0) { const k = l.slice(0, i).trim(), v = l.slice(i + 1).trim(); if (k && v) prizes[k] = v; } });
+      $('#sv', m).disabled = true; $('#sv', m).textContent = 'Menyimpan…';
       const r = await api('setConfig', { config: { total: $('#tt', m).value, sessions, prizes } });
-      if (!r.ok) return $('#sm', m).innerHTML = `<div class="msg err">${esc(r.error)}</div>`;
-      await reload(); paint(); m.remove();
+      if (!r.ok) { $('#sv', m).disabled = false; $('#sv', m).textContent = 'Simpan'; return $('#sm', m).innerHTML = `<div class="msg err">${esc(r.error)}</div>`; }
+      m.remove(); await reload(); paint();
     };
   }
   $('#bl').onclick = () => { showList(); $('#drawer').classList.toggle('open'); };
@@ -3482,8 +3516,8 @@ async function pgCabutan() {
     if (!S.next) { $('#note').textContent = '✦ Semua cabutan selesai — tahniah kepada semua pemenang! ✦'; setTimeout(() => FX.rain(), 1500); }
     else if (ses && res.winner.cabutan === ses.hingga) { const ns = sessOf(S.next); $('#note').textContent = `✦ ${ses.nama} tamat${ns ? ' — seterusnya: ' + ns.nama : ''} ✦`; }
     $('#after').innerHTML = `<button class="btn ghost sm" id="ab">Tidak hadir — cabut semula</button><button class="btn ghost sm" id="un">Batalkan cabutan ini</button>`;
-    $('#ab').onclick = async () => { if (!confirm('Tandakan pemenang ini TIDAK HADIR dan cabut semula nombor yang sama?')) return; const r = await api('absentDraw'); if (!r.ok) return alert(r.error); await reload(); w.classList.remove('show'); $('#after').innerHTML = ''; $('#note').textContent = ''; reel.textContent = '--'; paint(); };
-    $('#un').onclick = async () => { if (!confirm('Batalkan cabutan terakhir? Peserta kembali ke senarai layak.')) return; const r = await api('undoDraw'); if (!r.ok) return alert(r.error); await reload(); w.classList.remove('show'); $('#after').innerHTML = ''; $('#note').textContent = ''; reel.textContent = '--'; paint(); };
+    $('#ab').onclick = async () => { if (!confirm('Tandakan pemenang ini TIDAK HADIR dan cabut semula nombor yang sama?')) return; $('#ab').disabled = true; $('#ab').textContent = 'Memproses…'; $('#un').disabled = true; const r = await api('absentDraw'); if (!r.ok) return alert(r.error); await reload(); w.classList.remove('show'); $('#after').innerHTML = ''; $('#note').textContent = ''; reel.textContent = '--'; paint(); };
+    $('#un').onclick = async () => { if (!confirm('Batalkan cabutan terakhir? Peserta kembali ke senarai layak.')) return; $('#un').disabled = true; $('#un').textContent = 'Memproses…'; $('#ab').disabled = true; const r = await api('undoDraw'); if (!r.ok) return alert(r.error); await reload(); w.classList.remove('show'); $('#after').innerHTML = ''; $('#note').textContent = ''; reel.textContent = '--'; paint(); };
     paint(true); $('#go').disabled = false; busy = false;
   }
   $('#go').onclick = draw;
