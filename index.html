@@ -297,6 +297,16 @@ body.fitscr .lanterns,body.fitscr #moon{display:none!important}
 .gopt span{display:block;text-align:center;padding:12px 8px;border:1px solid var(--line);border-radius:14px;background:rgba(8,5,30,.45);font-weight:700;transition:background .15s,border-color .15s,color .15s}
 .gopt input:checked+span{background:var(--gold);color:#2a1659;border-color:var(--gold);box-shadow:0 0 14px rgba(242,193,78,.5)}
 body.fit .gopt span{padding:9px 6px}
+.selfrow{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start}
+.selfrow .gen{grid-template-columns:1fr;gap:8px}
+.selfie{width:92px;height:92px;border-radius:50%;border:2px dashed var(--gold);background:rgba(8,5,30,.45);color:var(--gold2);display:grid;place-items:center;overflow:hidden;cursor:pointer;margin-top:6px;padding:0}
+.selfie span{display:grid;justify-items:center;font-size:1.5rem;line-height:1.1}.selfie small{font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.selfie img{width:100%;height:100%;object-fit:cover;display:block}
+.winner.show{display:flex;align-items:center;justify-content:center;gap:clamp(14px,2.4vw,32px);flex-wrap:wrap}
+.winner .wt{text-align:left;max-width:min(70vw,780px)}
+@media(max-width:700px){.winner .wt{text-align:center}}
+.winner .wph{flex:none;width:clamp(84px,15vh,150px);height:clamp(84px,15vh,150px);border-radius:50%;object-fit:cover;border:4px solid var(--gold);box-shadow:0 0 34px rgba(242,193,78,.7);display:block;background:rgba(8,5,30,.6)}
+.winner .wph.ini{display:grid;place-items:center;font-family:var(--disp);font-size:3rem;color:var(--gold)}
 </style>
 </head>
 <body>
@@ -2728,11 +2738,18 @@ function candidatesOf(store, cat) {
     .sort(function (a, b) { return a.no - b.no; });
 }
 
-function doRegister(store, req, env) {
+function checkFoto(f, need) {
+  f = String(f || '');
+  if (!f) return need ? 'Sila ambil gambar selfie anda.' : '';
+  if (f.indexOf('data:image/jpeg;base64,') !== 0 || f.length > 46000) return 'Gambar selfie tidak sah atau terlalu besar. Cuba ambil semula.';
+  return '';
+}
+function doRegister(store, req, env, needFoto) {
   var nama = clean(req.nama).replace(/^[=+\-@]+/, '').toUpperCase().slice(0, 80);
   var unit = clean(req.unit);
   if (nama.length < 3) return err('Sila masukkan nama penuh anda.');
   if (UNITS.indexOf(unit) < 0) return err('Sila pilih unit anda.');
+  var fe = checkFoto(req.foto, needFoto); if (fe) return err(fe, 'foto');
   var jantina = String(req.jantina || '').toUpperCase();
   if (jantina !== 'L' && jantina !== 'P') return err('Sila pilih jantina anda.');
   var key = norm(nama), found = null;
@@ -2746,6 +2763,7 @@ function doRegister(store, req, env) {
   var no = free[Math.floor(env.random() * free.length)];
   var rec = { no: no, nama: nama, unit: unit, masa: env.now(), calon: '', jantina: jantina };
   store.peserta.push(rec);
+  if (req.foto && env.putFoto) env.putFoto(no, req.foto);
   return { ok: true, existing: false, no: no, nama: nama, unit: unit, jumlah: store.peserta.length, _dirty: ['peserta'], _added: { peserta: rec } };
 }
 
@@ -2772,9 +2790,11 @@ function handle(store, req, env) {
     case 'info':
       return { ok: true, total: cfg.total, registered: store.peserta.length, voteOpen: !!cfg.voteOpen, units: UNITS };
 
-    case 'register': return doRegister(store, req, env);
+    case 'register': return doRegister(store, req, env, true);
 
     case 'adminAdd': return doRegister(store, req, env);
+
+    case 'foto': { var fno = toInt(req.no, 0); return { ok: true, no: fno, foto: (env.getFoto && env.getFoto(fno)) || '' }; }
 
     case 'adminList':
       return {
@@ -2789,6 +2809,7 @@ function handle(store, req, env) {
       if (won) return err('Peserta ini sudah menang. Batalkan cabutan terakhir dahulu.');
       var before = store.peserta.length;
       store.peserta = store.peserta.filter(function (p) { return p.no !== no; });
+      if (env.delFoto) env.delFoto(no);
       if (store.peserta.length === before) return err('Peserta tidak ditemui.');
       store.cabutan = store.cabutan.filter(function (c) { return c.no !== no; });
       store.undi = store.undi.filter(function (u) { return u.voterNo !== no; });
@@ -2884,6 +2905,7 @@ function handle(store, req, env) {
       if (what === 'undi') { store.undi = []; return { ok: true, _dirty: ['undi'] }; }
       if (what === 'semua') {
         store.peserta = []; store.cabutan = []; store.undi = []; store.config.voteOpen = false;
+        if (env.clearFoto) env.clearFoto();
         return { ok: true, _dirty: ['peserta', 'cabutan', 'undi', 'config'] };
       }
       return err('Pilihan tidak sah.');
@@ -2920,7 +2942,10 @@ function demoStore() {
 }
 function demoCall(req) {
   const st = demoStore();
-  const env = { pin: DEMO_PIN, now: () => new Date().toISOString(), random: () => crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296 };
+  const env = { pin: DEMO_PIN, now: () => new Date().toISOString(), random: () => crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296,
+    putFoto: (n, d) => { try { localStorage.setItem('an_foto_' + n, d); } catch (e) { } }, getFoto: n => { try { return localStorage.getItem('an_foto_' + n) || ''; } catch (e) { return ''; } },
+    delFoto: n => { try { localStorage.removeItem('an_foto_' + n); } catch (e) { } },
+    clearFoto: () => { try { Object.keys(localStorage).filter(k => k.indexOf('an_foto_') === 0).forEach(k => localStorage.removeItem(k)); } catch (e) { } } };
   const res = handle(st, req, env);
   if (res._dirty) { LS.set('demo_store', st); delete res._dirty; }
   delete res._added;
@@ -2933,7 +2958,7 @@ async function api(action, data) {
 }
 async function _api(action, data) {
   const req = Object.assign({ action, pin: SS.get('pin') || '' }, data || {});
-  const READ = ['info', 'voteInfo', 'adminList', 'drawState', 'results', 'ping'];
+  const READ = ['info', 'voteInfo', 'adminList', 'drawState', 'results', 'ping', 'foto'];
   const RETRY = READ.concat(['register', 'vote', 'adminAdd', 'setConfig', 'setCalon']);
   if (DEMO) { await sleep(120); return JSON.parse(JSON.stringify(demoCall(req))); }
   const once = async () => {
@@ -3116,7 +3141,7 @@ function hero() {
   <div class="info">
     <div class="ib2">${ic.cal}<small>Tarikh</small><strong>Jumaat</strong><span>4 Disember 2026</span></div>
     <div class="ib2">${ic.clk}<small>Masa</small><strong>8.00 – 11.00</strong><span>malam</span></div>
-    <div class="ib2">${ic.pin}<small>Lokasi</small><strong>Putrajaya</strong><span>Marriott Hotel</span></div>
+    <div class="ib2">${ic.pin}<small>Lokasi</small><strong>Putrajaya</strong><span>Mercure Living</span></div>
   </div></header>`;
 }
 function fitScreen() {
@@ -3164,6 +3189,23 @@ async function needAdmin() {
 function fmtTime(iso) { try { return new Date(iso).toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
 
 /* ============ HALAMAN: DAFTAR ============ */
+function shrinkPhoto(file) {
+  return new Promise((ok, no) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      try {
+        const side = Math.min(img.naturalWidth, img.naturalHeight), sx = (img.naturalWidth - side) / 2, sy = (img.naturalHeight - side) / 2;
+        for (const [px, q] of [[300, .74], [260, .66], [220, .6], [180, .55]]) {
+          const c = document.createElement('canvas'); c.width = c.height = px; const x = c.getContext('2d');
+          x.fillStyle = '#fff'; x.fillRect(0, 0, px, px); x.drawImage(img, sx, sy, side, side, 0, 0, px, px);
+          const d = c.toDataURL('image/jpeg', q); if (d.length <= 42000) { URL.revokeObjectURL(url); return ok(d); }
+        }
+        no(new Error('besar'));
+      } catch (e) { no(e); }
+    };
+    img.onerror = () => no(new Error('baca')); img.src = url;
+  });
+}
 async function pgDaftar() {
   document.body.classList.add('split-page', 'fit'); enableFit();
   buildBg(false);
@@ -3184,9 +3226,17 @@ async function pgDaftar() {
     $('#card').innerHTML = `<h2>Pendaftaran Peserta</h2><div id="quota"></div>
     <form id="f" autocomplete="off" novalidate><label for="nama">Nama Penuh</label><input id="nama" placeholder="cth: Ahmad bin Abdullah" maxlength="80" autocapitalize="words" autocorrect="off" enterkeyhint="next" value="${esc(pre.nama || '')}">
     <label for="unit">Unit</label><select id="unit"><option value="">— Pilih unit —</option>${unitOptions()}</select>
-    <label>Jantina</label><div class="gen" id="gen"><label class="gopt"><input type="radio" name="jt" value="L" ${pre.jantina === 'L' ? 'checked' : ''}><span>♂ Lelaki</span></label><label class="gopt"><input type="radio" name="jt" value="P" ${pre.jantina === 'P' ? 'checked' : ''}><span>♀ Perempuan</span></label></div>
+    <div class="selfrow"><div><label>Selfie <b style="color:#ff9ab5">*</b></label><button type="button" class="selfie" id="selfbtn" aria-label="Ambil selfie">${pre.foto ? `<img src="${pre.foto}" alt="">` : '<span>📸<small>Ambil<br>selfie</small></span>'}</button><input type="file" id="selfin" accept="image/*" capture="user" hidden></div>
+    <div><label>Jantina</label><div class="gen" id="gen"><label class="gopt"><input type="radio" name="jt" value="L" ${pre.jantina === 'L' ? 'checked' : ''}><span>♂ Lelaki</span></label><label class="gopt"><input type="radio" name="jt" value="P" ${pre.jantina === 'P' ? 'checked' : ''}><span>♀ Perempuan</span></label></div></div></div>
     <button class="btn block" id="sub" type="submit">✦ Dapatkan No. Bertuah ✦</button><div id="m">${pre.error ? `<div class="msg err">${esc(pre.error)}</div>` : ''}</div></form>`;
     if (pre.unit) $('#unit').value = pre.unit;
+    let foto = pre.foto || '';
+    $('#selfbtn').onclick = () => $('#selfin').click();
+    $('#selfin').onchange = async e => {
+      const f = e.target.files[0]; if (!f) return;
+      try { foto = await shrinkPhoto(f); $('#selfbtn').innerHTML = `<img src="${foto}" alt="">`; $('#m').innerHTML = ''; }
+      catch (er) { foto = ''; $('#m').innerHTML = '<div class="msg err">Gambar tidak dapat dibaca. Cuba ambil semula.</div>'; }
+    };
     quota();
     $('#f').onsubmit = async e => {
       e.preventDefault();
@@ -3194,12 +3244,13 @@ async function pgDaftar() {
       if (nama.length < 3) return $('#m').innerHTML = '<div class="msg err">Sila masukkan nama penuh anda.</div>';
       if (!unit) return $('#m').innerHTML = '<div class="msg err">Sila pilih unit anda.</div>';
       if (!jantina) return $('#m').innerHTML = '<div class="msg err">Sila pilih jantina anda.</div>';
+      if (!foto) return $('#m').innerHTML = '<div class="msg err">Selfie wajib. Sila tekan butang kamera untuk ambil gambar.</div>';
       pending(nama, unit);
       // animasi sekurang-kurangnya 1.3s supaya terasa serta-merta & menyeronokkan walaupun pelayan perlahan
-      const [r] = await Promise.all([api('register', { nama, unit, jantina }), sleep(1300)]);
+      const [r] = await Promise.all([api('register', { nama, unit, jantina, foto }), sleep(1300)]);
       clearInterval(timer);
       if (r.ok) { LS.set('reg', { no: r.no, nama: r.nama, unit: r.unit }); ticket(r, r.existing); }
-      else form({ nama, unit, jantina, error: r.error });
+      else form({ nama, unit, jantina, foto, error: r.error });
     };
   }
   function pending(nama, unit) {
@@ -3408,6 +3459,7 @@ async function pgCabutan() {
     const pool = S.pool.length ? S.pool : [1]; const rnd = () => pool[Math.floor(Math.random() * pool.length)];
     let spinning = true; const spinT = setInterval(() => { if (spinning) { reel.textContent = pad(rnd()); Snd.tick(); } }, 70);
     const t0 = Date.now(), res = await api('draw');
+    const fotoP = res.ok ? api('foto', { no: res.winner.no }) : null;
     await sleep(Math.max(0, 2600 - (Date.now() - t0)));
     spinning = false; clearInterval(spinT);
     if (!res.ok) { Snd.spinMusic(false); reel.classList.remove('spin'); $('#go').disabled = false; busy = false; $('#note').innerHTML = `<span style="color:#ff8aa8">${esc(res.error)}</span>`; await reload(); paint(); return; }
@@ -3416,7 +3468,8 @@ async function pgCabutan() {
     for (const dl of delays) { let x; do { x = rnd(); } while (x === last && pool.length > 1); last = x; reel.textContent = pad(x); Snd.tick(); await sleep(dl); }
     Snd.spinMusic(false); reel.textContent = pad(res.winner.no); reel.classList.remove('spin'); reel.classList.add('land');
     const big = res.winner.cabutan <= 3; Snd.sfx(sfxKey(res.winner.cabutan), big);
-    w.innerHTML = `<div class="wn">${esc(res.winner.nama)}</div><div class="wu">${esc(res.winner.unit)}</div>${prizeOf(res.winner.cabutan) ? `<div class="wp">🎁 ${esc(prizeOf(res.winner.cabutan))}</div>` : ''}`;
+    const fr = fotoP ? await fotoP : null, fsrc = fr && fr.ok ? fr.foto : '';
+    w.innerHTML = `${fsrc ? `<img class="wph" src="${fsrc}" alt="">` : `<div class="wph ini">${esc(res.winner.nama.charAt(0))}</div>`}<div class="wt"><div class="wn">${esc(res.winner.nama)}</div><div class="wu">${esc(res.winner.unit)}</div>${prizeOf(res.winner.cabutan) ? `<div class="wp">🎁 ${esc(prizeOf(res.winner.cabutan))}</div>` : ''}</div>`;
     w.classList.add('show'); big ? FX.big() : FX.burst(innerWidth / 2, innerHeight * .4, 140, 11);
     await reload();
     const ses = sessOf(res.winner.cabutan);
