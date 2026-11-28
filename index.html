@@ -238,7 +238,9 @@ td select{padding:6px 8px;font-size:.8rem;border-radius:10px}
 .winner .wu{font-size:clamp(.95rem,2.2vw,1.4rem);color:var(--teal);margin-top:4px}
 .winner .wp{font-family:var(--ar);font-size:clamp(1.1rem,2.6vw,1.7rem);color:var(--gold2);margin-top:6px}
 .ctrl{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
-.go{font-size:clamp(1rem,2.4vw,1.4rem)!important;padding:18px 40px!important}
+.go{font-size:clamp(1rem,2.4vw,1.4rem)!important;padding:18px 40px!important;animation:gopulse 1.8s ease-in-out infinite}
+.go:disabled{animation:none}
+@keyframes gopulse{0%,100%{box-shadow:0 0 18px rgba(242,193,78,.45)}50%{box-shadow:0 0 38px rgba(242,193,78,.95)}}
 .note{margin-top:10px;font-family:var(--ar);font-size:1.2rem;color:var(--gold2)}
 .drawer{position:fixed;top:0;right:0;bottom:0;width:min(380px,92vw);z-index:60;background:rgba(10,6,34,.96);border-left:2px solid var(--gold);padding:18px;overflow:auto;transform:translateX(105%);transition:.35s}
 .drawer.open{transform:none}
@@ -3067,6 +3069,10 @@ const Snd = (() => {
       Object.keys(this._c || {}).forEach(k => { const a = this._c[k]; a.muted = true; const p = a.play(); if (p && p.then) p.then(() => { a.pause(); a.currentTime = 0; a.muted = false; }).catch(() => { a.muted = false; }); });
     },
     setFile(f) { init(); if (file) { file.pause(); file = null; } if (f) { file = new Audio(URL.createObjectURL(f)); file.loop = true; if (musicOn) file.play().catch(() => { }); } },
+    spinMusic(on) {
+      if (on) { if (!musicOn) { this.toggle(); this._auto = true; } }
+      else if (this._auto) { this._auto = false; if (musicOn) this.toggle(); }
+    },
     toggle() {
       init(); musicOn = !musicOn;
       if (musicOn) {
@@ -3331,7 +3337,7 @@ async function pgCabutan() {
     if (!keep) { $('#sesi').textContent = ses ? `${ses.nama} · Cabutan ${ses.dari} → ${ses.hingga}` : 'Cabutan'; $('#cn').textContent = n; $('#prize').textContent = prizeOf(n) ? '🎁 ' + prizeOf(n) : ''; }
     const lastInSes = S.cabutan.length ? sessOf(S.cabutan[S.cabutan.length - 1].cabutan) : null;
     const newSes = S.cabutan.length && ses && lastInSes && lastInSes !== ses;
-    $('#go').textContent = newSes ? `Mula ${ses.nama} — Cabut No. ${n}` : `Cabut No. ${n}`;
+    $('#go').textContent = newSes ? `▶ SPIN · Mula ${ses.nama} — No. ${n}` : `▶ SPIN · Cabut No. ${n}`;
     const short = S.pool.length < n;
     $('#warn').innerHTML = short ? `<div class="msg err" style="max-width:520px;margin:10px auto">Amaran: hanya ${S.pool.length} peserta layak berbaki tetapi cabutan tinggal ${n}.</div>` : '';
   }
@@ -3371,7 +3377,7 @@ async function pgCabutan() {
     if (busy || !S.next || $('#go').disabled) return; busy = true; Snd.unlock(); Snd.unlockSfx(); paint();
     const sfxKey = n => n === 3 ? 'p3' : n === 2 ? 'p2' : n === 1 ? 'p1' : 'menang';
     if (S.next === 3) Snd.sfx('grand', true);
-    $('#go').disabled = true; $('#after').innerHTML = ''; $('#note').textContent = '';
+    $('#go').disabled = true; $('#after').innerHTML = ''; $('#note').textContent = ''; Snd.spinMusic(true);
     const w = $('#winner'); w.classList.remove('show');
     reel.classList.remove('land'); reel.classList.add('spin');
     const pool = S.pool.length ? S.pool : [1]; const rnd = () => pool[Math.floor(Math.random() * pool.length)];
@@ -3379,11 +3385,11 @@ async function pgCabutan() {
     const t0 = Date.now(), res = await api('draw');
     await sleep(Math.max(0, 2600 - (Date.now() - t0)));
     spinning = false; clearInterval(spinT);
-    if (!res.ok) { reel.classList.remove('spin'); $('#go').disabled = false; busy = false; $('#note').innerHTML = `<span style="color:#ff8aa8">${esc(res.error)}</span>`; await reload(); paint(); return; }
+    if (!res.ok) { Snd.spinMusic(false); reel.classList.remove('spin'); $('#go').disabled = false; busy = false; $('#note').innerHTML = `<span style="color:#ff8aa8">${esc(res.error)}</span>`; await reload(); paint(); return; }
     // perlahan sebelum berhenti
     const delays = [90, 110, 135, 165, 200, 250, 310, 380, 470]; let last = -1;
     for (const dl of delays) { let x; do { x = rnd(); } while (x === last && pool.length > 1); last = x; reel.textContent = pad(x); Snd.tick(); await sleep(dl); }
-    reel.textContent = pad(res.winner.no); reel.classList.remove('spin'); reel.classList.add('land');
+    Snd.spinMusic(false); reel.textContent = pad(res.winner.no); reel.classList.remove('spin'); reel.classList.add('land');
     const big = res.winner.cabutan <= 3; Snd.sfx(sfxKey(res.winner.cabutan), big);
     w.innerHTML = `<div class="wn">${esc(res.winner.nama)}</div><div class="wu">${esc(res.winner.unit)}</div>${prizeOf(res.winner.cabutan) ? `<div class="wp">🎁 ${esc(prizeOf(res.winner.cabutan))}</div>` : ''}`;
     w.classList.add('show'); big ? FX.big() : FX.burst(innerWidth / 2, innerHeight * .4, 140, 11);
