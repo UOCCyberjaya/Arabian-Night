@@ -224,11 +224,13 @@ td select{padding:6px 8px;font-size:.8rem;border-radius:10px}
 .ib:hover{background:rgba(242,193,78,.2)}
 .mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;padding-top:10px}
 .sesi{font-family:var(--disp);letter-spacing:5px;color:var(--teal);font-size:clamp(.8rem,2.4vw,1.2rem);text-transform:uppercase}
-.cabno{font-family:var(--disp);font-size:clamp(1rem,3.2vw,1.8rem);color:var(--gold2);letter-spacing:6px}
-.cabno b{font-size:clamp(2.2rem,min(8vw,9vh),5rem);color:var(--gold);display:block;line-height:1;text-shadow:0 0 30px rgba(242,193,78,.6)}
+.cabno{font-family:var(--disp);font-size:clamp(.8rem,2.2vh,1.1rem);color:var(--gold2);letter-spacing:5px}
+.cabno b{display:inline;font-size:clamp(1.1rem,3.2vh,1.8rem);color:var(--gold);margin-left:10px;text-shadow:0 0 18px rgba(242,193,78,.6)}
 .prize{font-family:var(--ar);font-size:clamp(1.1rem,3vw,1.9rem);min-height:1.6em;color:var(--cream)}
-.reelwrap{margin:10px 0;padding:14px 38px 6px;border-radius:200px 200px 22px 22px;border:3px solid var(--gold);background:linear-gradient(180deg,rgba(20,12,56,.9),rgba(6,4,26,.95));box-shadow:0 0 60px rgba(242,193,78,.35),inset 0 0 50px rgba(242,193,78,.12)}
-.reel{font-family:var(--disp);font-weight:900;font-size:clamp(5rem,min(24vw,27vh),14rem);line-height:1.05;min-width:2ch;color:var(--gold);text-shadow:0 0 40px rgba(242,193,78,.8);font-variant-numeric:tabular-nums}
+.reelwrap{position:relative;margin:8px 0;padding:6px clamp(34px,6vw,84px);border-radius:30px;border:3px solid var(--gold);background:radial-gradient(ellipse at 50% 0%,rgba(150,100,230,.5),rgba(20,12,56,.96) 72%);box-shadow:0 0 80px rgba(242,193,78,.5),0 0 0 6px rgba(242,193,78,.12),inset 0 0 44px rgba(242,193,78,.2),inset 0 0 0 6px rgba(20,12,56,.92),inset 0 0 0 8px rgba(242,193,78,.55)}
+.reelwrap::before,.reelwrap::after{content:'✦';position:absolute;top:50%;transform:translateY(-50%);font-size:clamp(1.1rem,3.2vh,2rem);color:var(--gold);text-shadow:0 0 14px rgba(242,193,78,.9)}
+.reelwrap::before{left:clamp(8px,1.6vw,22px)}.reelwrap::after{right:clamp(8px,1.6vw,22px)}
+.reel{font-family:var(--disp);font-weight:900;font-size:clamp(5.5rem,min(26vw,30vh),16rem);line-height:1.02;min-width:2ch;background:linear-gradient(180deg,#fff6c9 0%,#ffd75e 45%,#d9962b 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 22px rgba(242,193,78,.75));font-variant-numeric:tabular-nums;letter-spacing:.02em}
 .reel.spin{opacity:.92}
 .reel.land{animation:land .7s ease-out}
 @keyframes land{0%{transform:scale(1.5)}60%{transform:scale(.95)}100%{transform:scale(1)}}
@@ -305,7 +307,7 @@ body.fit .gopt span{padding:9px 6px}
 .winner.show{display:flex;align-items:center;justify-content:center;gap:clamp(14px,2.4vw,32px);flex-wrap:wrap}
 .winner .wt{text-align:left;max-width:min(70vw,780px)}
 @media(max-width:700px){.winner .wt{text-align:center}}
-.winner .wph{flex:none;width:clamp(84px,15vh,150px);height:clamp(84px,15vh,150px);border-radius:50%;object-fit:cover;border:4px solid var(--gold);box-shadow:0 0 34px rgba(242,193,78,.7);display:block;background:rgba(8,5,30,.6)}
+.winner .wph{flex:none;width:clamp(120px,25vh,280px);height:clamp(120px,25vh,280px);border-radius:50%;object-fit:cover;border:4px solid var(--gold);box-shadow:0 0 34px rgba(242,193,78,.7);display:block;background:rgba(8,5,30,.6)}
 .winner .wph.ini{display:grid;place-items:center;font-family:var(--disp);font-size:3rem;color:var(--gold)}
 </style>
 </head>
@@ -2633,8 +2635,8 @@ const SFX_FILES = {
   p1: 'first.mp3',        // Podium No. 1
   grand: 'grand.mp3'      // pembukaan Hadiah Utama (bermula semasa cabut No. 3)
 };
-// Muzik latar Arab semasa spin: letak fail ini dalam folder yang sama. Jika tiada, muzik Arab automatik digunakan.
-const BGM_FILE = 'musik.mp3';
+// Lagu semasa spin (main bila SPIN ditekan, berhenti bila nombor keluar): letak fail ini dalam folder yang sama. Jika tiada, muzik Arab automatik digunakan.
+const BGM_FILE = 'spin.mp3';
 
 /* ===== ENJIN DIKONGSI (Apps Script + mod demo) ===== */
 var UNITS = ['Pejabat SUB (U)', 'Unit Sumber Manusia', 'Unit Pentadbiran', 'Unit Kewangan', 'Unit Perolehan', 'Unit Latihan', 'Unit Aset', 'Unit Pendaftaran', 'Unit Komunikasi Korporat'];
@@ -3108,7 +3110,7 @@ const Snd = (() => {
     },
     setFile(f) { init(); if (file) { file.pause(); file = null; } if (f) { file = new Audio(URL.createObjectURL(f)); file.loop = true; if (musicOn) file.play().catch(() => { }); } },
     spinMusic(on) {
-      if (on) { if (!musicOn) { this.toggle(); this._auto = true; } }
+      if (on) { if (file) { try { file.currentTime = 0; } catch (e) { } } if (!musicOn) { this.toggle(); this._auto = true; } }
       else if (this._auto) { this._auto = false; if (musicOn) this.toggle(); }
     },
     toggle() {
@@ -3413,7 +3415,7 @@ async function pgCabutan() {
     if (!keep) { $('#sesi').textContent = ses ? `${ses.nama} · Cabutan ${ses.dari} → ${ses.hingga}` : 'Cabutan'; $('#cn').textContent = n; $('#prize').textContent = prizeOf(n) ? '🎁 ' + prizeOf(n) : ''; }
     const lastInSes = S.cabutan.length ? sessOf(S.cabutan[S.cabutan.length - 1].cabutan) : null;
     const newSes = S.cabutan.length && ses && lastInSes && lastInSes !== ses;
-    $('#go').textContent = newSes ? `▶ SPIN · Mula ${ses.nama} — No. ${n}` : `▶ SPIN · Cabut No. ${n}`;
+    $('#go').textContent = '▶ SPIN';
     const short = S.pool.length < n;
     $('#warn').innerHTML = short ? `<div class="msg err" style="max-width:520px;margin:10px auto">Amaran: hanya ${S.pool.length} peserta layak berbaki tetapi cabutan tinggal ${n}.</div>` : '';
   }
