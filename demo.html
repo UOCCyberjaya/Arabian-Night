@@ -167,7 +167,7 @@ input::placeholder{color:rgba(255,246,221,.4)}
   #bg canvas,.noprint{display:none!important}
   @page{size:A4;margin:0}
   html,body{width:210mm!important;height:297mm!important;min-height:0!important;margin:0!important;overflow:hidden!important;background:#2b1760!important}
-  body.qrp #app{width:210mm!important;max-width:none!important;height:297mm!important;padding:0 14mm!important;display:flex;flex-direction:column;justify-content:center;align-items:center;animation:none!important}
+  body.qrp #app{width:210mm!important;max-width:none!important;height:297mm!important;min-height:0!important;padding:0 14mm!important;display:flex;flex-direction:column;justify-content:center;align-items:center;animation:none!important}
   body.qrp .lanterns,body.qrp #moon{display:none!important}
   body.qrp .hero{margin:0 0 8mm!important}
   body.qrp .info{margin-top:6mm!important}
@@ -291,6 +291,12 @@ body.fitscr .split{min-height:0!important}
 body.fitscr .lanterns,body.fitscr #moon{display:none!important}
 .backdash{position:fixed;top:10px;left:10px;z-index:50;font-size:.7rem!important;padding:6px 12px!important;opacity:.75}
 .backdash:hover{opacity:1}
+.gen{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.gopt{margin:0!important;cursor:pointer}
+.gopt input{position:absolute;opacity:0;pointer-events:none}
+.gopt span{display:block;text-align:center;padding:12px 8px;border:1px solid var(--line);border-radius:14px;background:rgba(8,5,30,.45);font-weight:700;transition:background .15s,border-color .15s,color .15s}
+.gopt input:checked+span{background:var(--gold);color:#2a1659;border-color:var(--gold);box-shadow:0 0 14px rgba(242,193,78,.5)}
+body.fit .gopt span{padding:9px 6px}
 </style>
 </head>
 <body>
@@ -2715,7 +2721,9 @@ function sanitizeConfig(inp, cur) {
 
 function candidatesOf(store, cat) {
   var tagged = store.peserta.filter(function (p) { return p.calon === cat; });
-  var list = tagged.length ? tagged : store.peserta;
+  // Automatik ikut jantina: Lelaki -> Sultan, Perempuan -> Queen (rekod lama tanpa jantina masuk kedua-dua senarai).
+  var g = cat === 'raja' ? 'L' : 'P';
+  var list = tagged.length ? tagged : store.peserta.filter(function (p) { return !p.jantina || p.jantina === g; });
   return list.map(function (p) { return { no: p.no, nama: p.nama, unit: p.unit }; })
     .sort(function (a, b) { return a.no - b.no; });
 }
@@ -2725,6 +2733,8 @@ function doRegister(store, req, env) {
   var unit = clean(req.unit);
   if (nama.length < 3) return err('Sila masukkan nama penuh anda.');
   if (UNITS.indexOf(unit) < 0) return err('Sila pilih unit anda.');
+  var jantina = String(req.jantina || '').toUpperCase();
+  if (jantina !== 'L' && jantina !== 'P') return err('Sila pilih jantina anda.');
   var key = norm(nama), found = null;
   store.peserta.forEach(function (p) { if (norm(p.nama) === key && p.unit === unit) found = p; });
   if (found) return { ok: true, existing: true, no: found.no, nama: found.nama, unit: found.unit };
@@ -2734,7 +2744,7 @@ function doRegister(store, req, env) {
   store.peserta.forEach(function (p) { used[p.no] = 1; });
   for (var n = 1; n <= total; n++) { if (!used[n]) free.push(n); }
   var no = free[Math.floor(env.random() * free.length)];
-  var rec = { no: no, nama: nama, unit: unit, masa: env.now(), calon: '' };
+  var rec = { no: no, nama: nama, unit: unit, masa: env.now(), calon: '', jantina: jantina };
   store.peserta.push(rec);
   return { ok: true, existing: false, no: no, nama: nama, unit: unit, jumlah: store.peserta.length, _dirty: ['peserta'], _added: { peserta: rec } };
 }
@@ -2847,11 +2857,11 @@ function handle(store, req, env) {
       if (!r && !q) return err('Sila pilih sekurang-kurangnya satu calon.');
       if (r) {
         if (r === vn) return err('Tidak boleh mengundi diri sendiri.');
-        if (!candidatesOf(store, 'raja').some(function (c) { return c.no === r; })) return err('Calon Raja tidak sah.');
+        if (!candidatesOf(store, 'raja').some(function (c) { return c.no === r; })) return err('Calon Sultan tidak sah.');
       }
       if (q) {
         if (q === vn) return err('Tidak boleh mengundi diri sendiri.');
-        if (!candidatesOf(store, 'permaisuri').some(function (c) { return c.no === q; })) return err('Calon Permaisuri tidak sah.');
+        if (!candidatesOf(store, 'permaisuri').some(function (c) { return c.no === q; })) return err('Calon Queen tidak sah.');
       }
       var urec = { masa: env.now(), voterNo: vn, voterNama: voter.nama, raja: r, permaisuri: q };
       store.undi.push(urec);
@@ -3174,20 +3184,22 @@ async function pgDaftar() {
     $('#card').innerHTML = `<h2>Pendaftaran Peserta</h2><div id="quota"></div>
     <form id="f" autocomplete="off" novalidate><label for="nama">Nama Penuh</label><input id="nama" placeholder="cth: Ahmad bin Abdullah" maxlength="80" autocapitalize="words" autocorrect="off" enterkeyhint="next" value="${esc(pre.nama || '')}">
     <label for="unit">Unit</label><select id="unit"><option value="">— Pilih unit —</option>${unitOptions()}</select>
+    <label>Jantina</label><div class="gen" id="gen"><label class="gopt"><input type="radio" name="jt" value="L" ${pre.jantina === 'L' ? 'checked' : ''}><span>♂ Lelaki</span></label><label class="gopt"><input type="radio" name="jt" value="P" ${pre.jantina === 'P' ? 'checked' : ''}><span>♀ Perempuan</span></label></div>
     <button class="btn block" id="sub" type="submit">✦ Dapatkan No. Bertuah ✦</button><div id="m">${pre.error ? `<div class="msg err">${esc(pre.error)}</div>` : ''}</div></form>`;
     if (pre.unit) $('#unit').value = pre.unit;
     quota();
     $('#f').onsubmit = async e => {
       e.preventDefault();
-      const nama = $('#nama').value.trim(), unit = $('#unit').value;
+      const nama = $('#nama').value.trim(), unit = $('#unit').value, jantina = ($('input[name=jt]:checked') || {}).value || '';
       if (nama.length < 3) return $('#m').innerHTML = '<div class="msg err">Sila masukkan nama penuh anda.</div>';
       if (!unit) return $('#m').innerHTML = '<div class="msg err">Sila pilih unit anda.</div>';
+      if (!jantina) return $('#m').innerHTML = '<div class="msg err">Sila pilih jantina anda.</div>';
       pending(nama, unit);
       // animasi sekurang-kurangnya 1.3s supaya terasa serta-merta & menyeronokkan walaupun pelayan perlahan
-      const [r] = await Promise.all([api('register', { nama, unit }), sleep(1300)]);
+      const [r] = await Promise.all([api('register', { nama, unit, jantina }), sleep(1300)]);
       clearInterval(timer);
       if (r.ok) { LS.set('reg', { no: r.no, nama: r.nama, unit: r.unit }); ticket(r, r.existing); }
-      else form({ nama, unit, error: r.error });
+      else form({ nama, unit, jantina, error: r.error });
     };
   }
   function pending(nama, unit) {
@@ -3200,10 +3212,8 @@ async function pgDaftar() {
     $('#card').innerHTML = `<div class="ticket"><div class="hi">${again ? 'Anda telah berdaftar' : 'Tahniah & Selamat Datang!'}</div><div class="nm">${esc(r.nama)}</div><div class="un">${esc(r.unit)}</div>
     <div class="lab">No. Cabutan Bertuah Anda</div><div class="bignum">${no}</div>
     <div class="dash"></div><p style="font-size:.92rem;line-height:1.5">Semua peserta akan membawa pulang hadiah! 🎁<br>Sila <b>tangkap skrin</b> nombor ini dan tunggu sesi cabutan bertuah.</p>
-    <a class="btn block" href="${pageUrl('undi')}" style="font-size:.78rem">♛ Undi Best Dress ♛</a>
-    <button class="btn ghost block sm" id="other" style="font-size:.7rem">Daftar rakan lain (di meja urus setia)</button></div>`;
+    <a class="btn block" href="${pageUrl('undi')}" style="font-size:.78rem">♛ Undi Best Dress ♛</a></div>`;
     if (!again) setTimeout(() => FX.burst(innerWidth / 2, innerHeight * .4, 110, 10), 300);
-    $('#other').onclick = () => { try { localStorage.removeItem('an_reg'); } catch (e) { } form(); };
   }
 }
 
@@ -3216,11 +3226,11 @@ async function pgUndi() {
   const done = reg && LS.get('voted_' + reg.no, false);
   if (!vi.ok) return $('#card').innerHTML = `<div class="msg err">${esc(vi.error)}</div>`;
   if (!vi.voteOpen) return $('#card').innerHTML = `<h2>Undian Best Dress</h2><div class="center"><div class="crown">🌙</div><p>Undian <b>belum dibuka</b> atau telah ditutup.<br>Tunggu pengumuman daripada pengacara majlis.</p></div>`;
-  if (done) return $('#card').innerHTML = `<div class="center"><div class="crown">♛</div><h2>Terima kasih!</h2><p>Undi anda telah direkodkan. Nantikan pengumuman <b>Raja &amp; Permaisuri Malam</b>.</p></div>`;
-  $('#card').innerHTML = `<h2>♛ Undian Best Dress ♛</h2><p class="small center">Pilih <b>Raja Malam</b> dan <b>Permaisuri Malam</b> berpakaian terbaik. Satu undi bagi setiap peserta.</p>
+  if (done) return $('#card').innerHTML = `<div class="center"><div class="crown">♛</div><h2>Terima kasih!</h2><p>Undi anda telah direkodkan. Nantikan pengumuman <b>Raja &amp; Queen of the Night</b>.</p></div>`;
+  $('#card').innerHTML = `<h2>♛ Undian Best Dress ♛</h2><p class="small center">Pilih <b>Sultan of the Night</b> dan <b>Queen of the Night</b> berpakaian terbaik. Satu undi bagi setiap peserta.</p>
   <form id="f"><div id="idbox"></div>
-  <label>Raja Malam (King of the Night)</label><div class="clist" id="lr"></div>
-  <label style="margin-top:20px">Permaisuri Malam (Queen of the Night)</label><div class="clist" id="lq"></div>
+  <label>Sultan of the Night</label><div class="clist" id="lr"></div>
+  <label style="margin-top:20px">Queen of the Night</label><div class="clist" id="lq"></div>
   <button class="btn block" id="sub" type="submit">Hantar Undi</button><div id="m"></div></form>`;
   const cand = (list, name) => list.length ? list.map(c => `<label class="cand"><input type="radio" name="${name}" value="${c.no}"><span class="badge">${String(c.no).padStart(2, '0')}</span><span class="t"><b>${esc(c.nama)}</b><span>${esc(c.unit)}</span></span></label>`).join('') : '<div class="small">Tiada calon.</div>';
   $('#lr').innerHTML = cand(vi.raja, 'raja'); $('#lq').innerHTML = cand(vi.permaisuri, 'perm');
@@ -3234,22 +3244,33 @@ async function pgUndi() {
     if (!raja && !perm) return $('#m').innerHTML = '<div class="msg err">Sila pilih sekurang-kurangnya satu calon.</div>';
     $('#sub').disabled = true; $('#sub').textContent = 'Menghantar…';
     const r = await api('vote', { voterNo: vno, voterNama: vnm, raja, permaisuri: perm });
-    if (r.ok || r.code === 'dup') { LS.set('voted_' + vno, true); FX.burst(innerWidth / 2, innerHeight / 2, 100, 9); $('#card').innerHTML = `<div class="center"><div class="crown">♛</div><h2>${r.ok ? 'Terima kasih!' : 'Sudah mengundi'}</h2><p>${r.ok ? 'Undi anda telah direkodkan.' : 'Undi anda telah direkodkan sebelum ini.'}<br>Nantikan pengumuman <b>Raja &amp; Permaisuri Malam</b>.</p></div>`; }
+    if (r.ok || r.code === 'dup') { LS.set('voted_' + vno, true); FX.burst(innerWidth / 2, innerHeight / 2, 100, 9); $('#card').innerHTML = `<div class="center"><div class="crown">♛</div><h2>${r.ok ? 'Terima kasih!' : 'Sudah mengundi'}</h2><p>${r.ok ? 'Undi anda telah direkodkan.' : 'Undi anda telah direkodkan sebelum ini.'}<br>Nantikan pengumuman <b>Raja &amp; Queen of the Night</b>.</p></div>`; }
     else { $('#sub').disabled = false; $('#sub').textContent = 'Hantar Undi'; $('#m').innerHTML = `<div class="msg err">${esc(r.error)}</div>`; }
   };
 }
 
 /* ============ HALAMAN: POSTER QR ============ */
+function printQR(sz) {
+  const old = $('#pgsize'); if (old) old.remove();
+  const st = document.createElement('style'); st.id = 'pgsize';
+  st.textContent = sz === 'A3'
+    ? '@media print{@page{size:A3;margin:0}html,body{width:297mm!important;height:420mm!important}body.qrp #app{zoom:1.41421}}'
+    : '@media print{@page{size:A4;margin:0}}';
+  document.head.appendChild(st);
+  const done = () => { st.remove(); removeEventListener('afterprint', done); };
+  addEventListener('afterprint', done);
+  setTimeout(() => window.print(), 80);
+}
 async function pgPoster(kind) {
   document.body.classList.add('qrp'); buildBg(false);
   const isV = kind === 'undi';
   const T = pageUrl(isV ? 'undi' : 'daftar');
   const card = isV
-    ? `<h2>Undi Best Dress</h2><p class="qrsub">Imbas untuk mengundi<br><b>Raja Malam</b> &amp; <b>Permaisuri Malam</b></p>`
+    ? `<h2>Undi Best Dress</h2><p class="qrsub">Imbas untuk mengundi<br><b>Sultan of the Night</b> &amp; <b>Queen of the Night</b></p>`
     : `<h2>Daftar Kehadiran</h2><p class="qrsub">Imbas untuk dapat<br><b>No. Cabutan Bertuah</b></p>`;
   app.innerHTML = `${hero()}
    <div style="max-width:440px;margin:0 auto"><section class="card qrcard fadein">${card}<div class="qrbox" id="q1"></div></section></div>
-  <div class="qrbtns noprint"><a class="btn ghost sm" href="${pageUrl('dashboard')}">← Dashboard</a><button class="btn sm" onclick="window.print()">🖨 Cetak</button></div>`;
+  <div class="qrbtns noprint"><a class="btn ghost sm" href="${pageUrl('dashboard')}">← Dashboard</a><button class="btn sm" onclick="printQR('A4')">🖨 Cetak A4</button><button class="btn sm" onclick="printQR('A3')">🖨 Cetak A3</button></div>`;
   const mk = (id, t) => { try { if (!window.qrcode) (0, eval)($('#qrlib').textContent); const q = qrcode(0, 'M'); q.addData(t); q.make(); $(id).innerHTML = q.createSvgTag({ cellSize: 6, margin: 0, scalable: true }); const sv = $(id + ' svg'); sv.removeAttribute('width'); sv.removeAttribute('height'); sv.style.display = 'block'; sv.querySelectorAll('rect,path').forEach(n => { if (n.getAttribute('fill') === '#000000') n.setAttribute('fill', '#1a0f3d'); if (n.getAttribute('fill') === '#ffffff') n.setAttribute('fill', '#fff6dd'); }); } catch (e) { $(id).innerHTML = '<div class="small" style="color:#2a1659;width:240px">Gagal menjana QR: ' + esc(e.message) + '</div>'; } };
   mk('#q1', T);
   if (location.protocol === 'file:') app.insertAdjacentHTML('beforeend', '<div class="msg err">Anda membuka fail secara tempatan. Muat naik ke GitHub Pages dahulu supaya QR menunjuk ke alamat web sebenar.</div>');
@@ -3277,33 +3298,34 @@ async function pgDashboard() {
     <div class="grid2" style="margin-top:14px">
       <section class="card"><h2>Mengikut Unit</h2>${UNITS.map(u => `<div class="ubar"><span>${esc(u)}</span><div class="bar" style="margin:0"><i style="width:${(d.byUnit[u] || 0) / maxU * 100}%"></i></div><b>${d.byUnit[u] || 0}</b></div>`).join('')}</section>
       <section class="card"><h2>Alat Urus Setia</h2>
-        <div class="row"><button class="btn sm" id="tv">${d.config.voteOpen ? '■ Tutup Undian' : '▶ Buka Undian Best Dress'}</button><button class="btn ghost sm" id="csv">⬇ Eksport CSV</button><button class="btn ghost sm" id="fl">↻ Segar semula</button></div>
-        <p class="small" style="margin:8px 0">Undian: <b>${d.config.voteOpen ? 'DIBUKA' : 'DITUTUP'}</b>. Tandakan calon Raja/Permaisuri dalam jadual; jika tiada ditanda, semua peserta menjadi calon.</p>
-        <div class="dash"></div><label style="margin-top:0">Tambah peserta secara manual</label>
-        <input id="an" placeholder="Nama penuh"><div style="height:8px"></div><select id="au"><option value="">— Unit —</option>${unitOptions()}</select><button class="btn sm block" id="aa" style="margin-top:12px">Tambah</button><div id="am"></div>
-        ${DEMO ? `<div class="dash"></div><button class="btn ghost sm" id="seed">Isi data demo (50 nama)</button>` : ''}
+        <div class="row"><button class="btn sm" id="tv">${d.config.voteOpen ? '■ Tutup Undian' : '▶ Buka Undian Best Dress'}</button><button class="btn ghost sm" id="csv">⬇ Eksport CSV</button><button class="btn ghost sm" id="fl">↻ Segar semula</button>${DEMO ? '<button class="btn ghost sm" id="seed">🧪 Isi 50 peserta contoh</button>' : ''}</div>
+        <p class="small" style="margin:8px 0">Undian: <b>${d.config.voteOpen ? 'DIBUKA' : 'DITUTUP'}</b>. Calon dipilih automatik: peserta Lelaki → Sultan of the Night, Perempuan → Queen of the Night. Anda boleh tandakan calon tertentu dalam jadual untuk menggantikan senarai automatik.</p>
+        <div class="dash"></div><label style="margin-top:0">Daftar manual (kaunter urus setia)</label>
+        <input id="an" placeholder="Nama penuh"><div style="height:8px"></div><select id="au"><option value="">— Unit —</option>${unitOptions()}</select><div style="height:8px"></div><select id="ag"><option value="">— Jantina —</option><option value="L">Lelaki</option><option value="P">Perempuan</option></select><button class="btn sm block" id="aa" style="margin-top:12px">Tambah</button><div id="am"></div>
         <div class="dash"></div><div class="row"><button class="btn red sm" id="r1">Set semula cabutan</button><button class="btn red sm" id="r2">Set semula undi</button><button class="btn red sm" id="r3">Padam semua data</button></div>
       </section></div>
-    <section class="card"><h2>Senarai Peserta${loading ? ' · memuatkan…' : ''}</h2><input id="srch" placeholder="Cari nama / unit / nombor…" value="${esc(q)}"><div class="scroll" style="margin-top:10px"><table><tr><th>No.</th><th>Nama</th><th>Unit</th><th>Masa</th><th>Cabutan</th><th>Calon</th><th></th></tr>
-    ${rows.map(p => `<tr><td><b style="color:var(--gold)">${String(p.no).padStart(2, '0')}</b></td><td>${esc(p.nama)}</td><td>${esc(p.unit)}</td><td>${fmtTime(p.masa)}</td><td>${won[p.no] ? '#' + won[p.no] : '—'}</td>
-    <td><select data-calon="${p.no}"><option value="">—</option><option value="raja" ${p.calon === 'raja' ? 'selected' : ''}>Calon Raja</option><option value="permaisuri" ${p.calon === 'permaisuri' ? 'selected' : ''}>Calon Permaisuri</option></select></td><td><button class="btn ghost sm" data-del="${p.no}" style="padding:6px 10px">✕</button></td></tr>`).join('') || '<tr><td colspan="7" class="small">Tiada peserta.</td></tr>'}</table></div></section>`;
+    <section class="card"><h2>Senarai Peserta${loading ? ' · memuatkan…' : ''}</h2><input id="srch" placeholder="Cari nama / unit / nombor…" value="${esc(q)}"><div class="scroll" style="margin-top:10px"><table><tr><th>No.</th><th>Nama</th><th>Unit</th><th>L/P</th><th>Masa</th><th>Cabutan</th><th>Calon</th><th></th></tr>
+    ${rows.map(p => `<tr><td><b style="color:var(--gold)">${String(p.no).padStart(2, '0')}</b></td><td>${esc(p.nama)}</td><td>${esc(p.unit)}</td><td>${p.jantina || '—'}</td><td>${fmtTime(p.masa)}</td><td>${won[p.no] ? '#' + won[p.no] : '—'}</td>
+    <td><select data-calon="${p.no}"><option value="">—</option><option value="raja" ${p.calon === 'raja' ? 'selected' : ''}>Calon Sultan</option><option value="permaisuri" ${p.calon === 'permaisuri' ? 'selected' : ''}>Calon Queen</option></select></td><td><button class="btn ghost sm" data-del="${p.no}" style="padding:6px 10px">✕</button></td></tr>`).join('') || '<tr><td colspan="8" class="small">Tiada peserta.</td></tr>'}</table></div></section>`;
     $('#srch').oninput = e => { q = e.target.value; const pos = e.target.selectionStart; draw(); const s = $('#srch'); s.focus(); s.setSelectionRange(pos, pos); };
     $('#tv').onclick = async () => { await api('setConfig', { config: { voteOpen: !d.config.voteOpen } }); refresh(); };
     $('#csv').onclick = () => {
-      const lines = [['No', 'Nama', 'Unit', 'Masa', 'Cabutan']].concat(d.peserta.map(p => [p.no, p.nama, p.unit, p.masa, won[p.no] || '']));
+      const lines = [['No', 'Nama', 'Unit', 'Jantina', 'Masa', 'Cabutan']].concat(d.peserta.map(p => [p.no, p.nama, p.unit, p.jantina || '', p.masa, won[p.no] || '']));
       const csv = '﻿' + lines.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\r\n');
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'peserta-arabian-night.csv'; document.body.appendChild(a); a.click(); a.remove();
     };
     $('#fl').onclick = async () => { $('#fl').textContent = 'Memuatkan…'; await api('flush'); loading = true; await refresh(); };
-    $('#aa').onclick = async () => { const r = await api('adminAdd', { nama: $('#an').value, unit: $('#au').value }); if (r.ok) { refresh(); } else $('#am').innerHTML = `<div class="msg err">${esc(r.error)}</div>`; };
+    $('#aa').onclick = async () => { const r = await api('adminAdd', { nama: $('#an').value, unit: $('#au').value, jantina: $('#ag').value }); if (r.ok) { refresh(); } else $('#am').innerHTML = `<div class="msg err">${esc(r.error)}</div>`; };
     document.querySelectorAll('[data-calon]').forEach(s => s.onchange = async () => { await api('setCalon', { no: s.dataset.calon, calon: s.value }); });
     document.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { const p = d.peserta.find(x => String(x.no) === b.dataset.del); if (!confirm('Padam ' + p.nama + ' (No. ' + p.no + ')?')) return; const r = await api('adminDelete', { no: p.no }); if (!r.ok) alert(r.error); refresh(); });
     const rs = (id, what, msg) => { const el = $(id); if (el) el.onclick = async () => { if (what === 'semua' ? prompt('Taip PADAM untuk memadam SEMUA data peserta, cabutan dan undi:') !== 'PADAM' : !confirm(msg)) return; await api('reset', { what }); refresh(); }; };
     rs('#r1', 'cabutan', 'Set semula semua keputusan cabutan?'); rs('#r2', 'undi', 'Padam semua undi Best Dress?'); rs('#r3', 'semua');
     const sd = $('#seed'); if (sd) sd.onclick = async () => {
       const N = ['Ahmad Faiz', 'Siti Nurhaliza', 'Muhammad Hafiz', 'Nur Aisyah', 'Mohd Azlan', 'Farah Najwa', 'Khairul Anuar', 'Nurul Huda', 'Zulkifli Hassan', 'Aina Sofea'], B = ['bin Abdullah', 'binti Ismail', 'bin Yusof', 'binti Hamid', 'bin Rahman'];
-      for (let i = 0; i < 50; i++) await api('register', { nama: N[i % 10] + ' ' + B[(i * 3) % 5] + ' ' + String.fromCharCode(65 + (i % 26)), unit: UNITS[i % 9] });
-      refresh();
+      sd.disabled = true;
+      const cur = d.peserta.length;
+      for (let i = cur; i < Math.min(50, d.config.total); i++) { sd.textContent = `Mengisi… ${i + 1}/50`; await api('register', { nama: N[i % 10] + ' ' + B[(i * 3) % 5] + ' ' + String.fromCharCode(65 + (i % 26)) + (i >= 26 ? String.fromCharCode(65 + (i % 26)) : ''), unit: UNITS[i % 9], jantina: i % 2 ? 'P' : 'L' }); }
+      await refresh(); sd.disabled = false; sd.textContent = '🧪 Isi 50 peserta contoh';
     };
   }
   draw(); refresh();
@@ -3437,7 +3459,7 @@ async function pgBest() {
   }
   function draw() {
     app.innerHTML = `${hero()}${navLinks('bestdress')}<div class="card"><div class="row" style="justify-content:space-between"><div>Undian: <b>${R.voteOpen ? 'DIBUKA' : 'DITUTUP'}</b> · Jumlah pengundi: <b>${R.pengundi}</b></div><div class="row"><button class="btn sm" id="tv">${R.voteOpen ? '■ Tutup Undian' : '▶ Buka Undian'}</button><button class="btn ghost sm" id="rf">↻ Muat semula</button></div></div></div>
-    <div class="grid2">${block('permaisuri', 'Permaisuri Malam · Queen of the Night', '👑')}${block('raja', 'Raja Malam · King of the Night', '🤴')}</div>`;
+    <div class="grid2">${block('permaisuri', 'Queen of the Night', '👑')}${block('raja', 'Sultan of the Night', '🤴')}</div>`;
     $('#tv').onclick = async () => { await api('setConfig', { config: { voteOpen: !R.voteOpen } }); await load(); draw(); };
     $('#rf').onclick = async () => { await load(); draw(); };
     document.querySelectorAll('[data-rev]').forEach(b => b.onclick = async () => { await load(); revealed[b.dataset.rev] = true; Snd.unlock(); Snd.fanfare(true); draw(); FX.big(); });
