@@ -3109,14 +3109,14 @@ function hero() {
 function fitScreen() {
   const a = $('#app'); if (!a) return;
   a.style.zoom = 1;
-  const w = a.offsetWidth, h = a.scrollHeight;
+  const w = Math.max(a.offsetWidth, a.scrollWidth), h = a.scrollHeight;
   let z = Math.min(innerWidth / w, innerHeight / h, 1.8); z = Math.max(z, .55);
   a.style.zoom = z;
   document.body.style.overflowY = (h * z > innerHeight + 2) ? 'auto' : 'hidden';
 }
 function enableFit() {
   document.body.classList.add('fitscr');
-  if (!$('.backdash')) { const b = document.createElement('a'); b.className = 'btn ghost sm backdash noprint'; b.href = pageUrl('dashboard'); b.textContent = '← Dashboard'; document.body.appendChild(b); }
+  if (!$('.backdash') && (SS.get('pin') || LS.get('adm', false))) { const b = document.createElement('a'); b.className = 'btn ghost sm backdash noprint'; b.href = pageUrl('dashboard'); b.textContent = '← Dashboard'; document.body.appendChild(b); }
   let t = 0; const go = () => { cancelAnimationFrame(t); t = requestAnimationFrame(fitScreen); };
   addEventListener('resize', go); addEventListener('orientationchange', go);
   new MutationObserver(go).observe($('#app'), { childList: true, subtree: true });
@@ -3141,7 +3141,7 @@ async function needAdmin() {
       const v = $('#pin').value.trim(); if (!v) return;
       const b = $('#okp'); b.disabled = true; b.textContent = 'Mengesahkan…'; $('#pm').innerHTML = '';
       const r = await api('auth', { pin: v });
-      if (r.ok) { SS.set('pin', v); res(); }
+      if (r.ok) { SS.set('pin', v); LS.set('adm', true); res(); }
       else { b.disabled = false; b.textContent = 'Masuk'; $('#pm').innerHTML = `<div class="msg err">${esc(r.code === 'pin' ? 'PIN tidak betul.' : r.error)}</div>`; $('#pin').select(); }
     };
     $('#okp').onclick = go; $('#pin').onkeydown = e => { if (e.key === 'Enter') go(); }; $('#pin').focus();
