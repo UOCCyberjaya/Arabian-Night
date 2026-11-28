@@ -2923,6 +2923,8 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const app = $('#app');
 const DEMO = !API_URL;
+// ?baru=1 : padam ingatan pendaftaran/undi pada peranti ini (untuk ujian atau peranti yang terlanjur imbas)
+try { if (new URLSearchParams(location.search).get('baru')) { Object.keys(localStorage).filter(k => k.indexOf('an_reg') === 0 || k.indexOf('an_voted_') === 0).forEach(k => localStorage.removeItem(k)); const u = new URL(location.href); u.searchParams.delete('baru'); history.replaceState(null, '', u); } } catch (e) { }
 const LS = {
   get(k, d) { try { const v = localStorage.getItem('an_' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem('an_' + k, JSON.stringify(v)); } catch (e) { } }
@@ -3163,7 +3165,7 @@ function enableFit() {
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(go);
   go();
 }
-function demoBanner() { if (DEMO && !$('.demo')) { const d = document.createElement('div'); d.className = 'demo noprint'; d.textContent = 'MOD DEMO — data disimpan dalam pelayar ini sahaja (belum disambung ke Google Sheet)'; document.body.appendChild(d); } }
+function demoBanner() { if (DEMO && !$('.demo')) { const d = document.createElement('div'); d.className = 'demo noprint'; d.textContent = 'MOD DEMO — data disimpan dalam pelayar ini sahaja (belum disambung ke Google Sheet) · '; const b = document.createElement('a'); b.href = '#'; b.textContent = 'Set semula demo'; b.style.cssText = 'color:#fff;text-decoration:underline;font-weight:800'; b.onclick = e => { e.preventDefault(); if (!confirm('Padam semua data demo pada pelayar ini?')) return; try { Object.keys(localStorage).filter(k => k.indexOf('an_') === 0).forEach(k => localStorage.removeItem(k)); sessionStorage.clear(); } catch (x) { } location.reload(); }; d.appendChild(b); document.body.appendChild(d); } }
 function navLinks(cur) {
   const L = [['dashboard', 'Dashboard'], ['cabutan', 'Cabutan Bertuah'], ['bestdress', 'Best Dress'], ['poster', 'QR Daftar'], ['posterundi', 'QR Best Dress'], ['daftar', 'Borang Daftar'], ['undi', 'Borang Undi']];
   return `<div class="nav noprint">${L.map(l => `<a class="btn ghost sm" href="${pageUrl(l[0])}" ${l[0] === cur ? 'style="background:rgba(242,193,78,.2)"' : ''}>${l[1]}</a>`).join('')}</div>`;
@@ -3214,7 +3216,7 @@ async function pgDaftar() {
   // Halaman & borang dipaparkan SERTA-MERTA; maklumat kuota menyusul selepas pelayan menjawab.
   app.innerHTML = `<div class="split">${hero()}<div class="col"><section class="card arch" id="card"></section><div class="foot"><div class="oline"><i></i><b>✦</b><i></i></div><div class="f1">Kelab Bahagian Pengurusan</div><div class="f2">· SPP ·</div></div></div></div>`;
   let info = null, timer = null;
-  const saved = LS.get('reg', null);
+  const saved = DEMO ? null : LS.get('reg', null);
   if (saved) ticket(saved, true); else form();
   api('info').then(r => { if (r.ok) { info = r; if (!LS.get('reg', null)) quota(); } });
 
@@ -3251,7 +3253,7 @@ async function pgDaftar() {
       // animasi sekurang-kurangnya 1.3s supaya terasa serta-merta & menyeronokkan walaupun pelayan perlahan
       const [r] = await Promise.all([api('register', { nama, unit, jantina, foto }), sleep(1300)]);
       clearInterval(timer);
-      if (r.ok) { LS.set('reg', { no: r.no, nama: r.nama, unit: r.unit }); ticket(r, r.existing); }
+      if (r.ok) { if (!DEMO) LS.set('reg', { no: r.no, nama: r.nama, unit: r.unit }); ticket(r, r.existing); }
       else form({ nama, unit, jantina, foto, error: r.error });
     };
   }
@@ -3264,8 +3266,7 @@ async function pgDaftar() {
     const no = String(r.no).padStart(2, '0');
     $('#card').innerHTML = `<div class="ticket"><div class="hi">${again ? 'Anda telah berdaftar' : 'Tahniah & Selamat Datang!'}</div><div class="nm">${esc(r.nama)}</div><div class="un">${esc(r.unit)}</div>
     <div class="lab">No. Cabutan Bertuah Anda</div><div class="bignum">${no}</div>
-    <div class="dash"></div><p style="font-size:.92rem;line-height:1.5">Semua peserta akan membawa pulang hadiah! 🎁<br>Sila <b>tangkap skrin</b> nombor ini dan tunggu sesi cabutan bertuah.</p>
-    <a class="btn block" href="${pageUrl('undi')}" style="font-size:.78rem">♛ Undi Best Dress ♛</a></div>`;
+    <div class="dash"></div><p style="font-size:.92rem;line-height:1.5">Semua peserta akan membawa pulang hadiah! 🎁<br>Sila <b>tangkap skrin</b> nombor ini dan tunggu sesi cabutan bertuah.</p></div>`;
     if (!again) setTimeout(() => FX.burst(innerWidth / 2, innerHeight * .4, 110, 10), 300);
   }
 }
