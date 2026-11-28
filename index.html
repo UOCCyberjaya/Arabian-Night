@@ -83,7 +83,7 @@ body.stage #app{max-width:none;padding:0}
 .oline i{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
 .oline b{font-size:.8rem}
 .org1{font-family:var(--disp);font-weight:700;font-size:clamp(1.05rem,4.6vw,1.45rem);letter-spacing:2px;text-transform:uppercase;margin:10px 0 4px;line-height:1.25;
-  background:linear-gradient(180deg,#fff,#ffe9a8 60%,#f2c14e);-webkit-background-clip:text;background-clip:text;color:transparent}
+  color:#ffd23f;text-shadow:0 0 14px rgba(255,210,63,.45),0 1px 0 rgba(0,0,0,.25)}
 .org2{font-family:var(--ar);font-style:italic;font-size:clamp(1.05rem,4.2vw,1.35rem);color:var(--teal);margin-bottom:10px;letter-spacing:.5px}
 .info{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px auto 0;max-width:460px}
 .ib2{border:1.5px solid var(--line);border-radius:44px 44px 16px 16px;padding:14px 4px 12px;background:linear-gradient(180deg,rgba(242,193,78,.14),rgba(48,26,98,.55));text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
@@ -165,14 +165,32 @@ input::placeholder{color:rgba(255,246,221,.4)}
 .qrfoot{margin-top:6px;font-size:.8rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);opacity:.85}
 @media print{
   #bg canvas,.noprint{display:none!important}
-  body{background:#120b36!important}
-  #app{padding:0 0 0!important;max-width:560px!important}
-  html,body{min-height:0!important;height:auto!important}
-  .lanterns,#moon,.mosque,.skyline{display:none!important}
-  header,.hero{margin-top:0!important;padding-top:0!important}
-  .qrbox svg{width:8cm!important}
-  .qrcard h2{font-size:2rem}.qrcard .qrsub{font-size:1.3rem}
-  @page{size:A4;margin:12mm}
+  @page{size:A4;margin:0}
+  html,body{width:210mm!important;height:297mm!important;min-height:0!important;margin:0!important;overflow:hidden!important;background:#2b1760!important}
+  body.qrp #app{width:210mm!important;max-width:none!important;height:297mm!important;padding:0 14mm!important;display:flex;flex-direction:column;justify-content:center;align-items:center;animation:none!important}
+  body.qrp .lanterns,body.qrp #moon{display:none!important}
+  body.qrp .hero{margin:0 0 8mm!important}
+  body.qrp .info{margin-top:6mm!important}
+  body.qrp .qrbox svg{width:11cm!important}
+  body.qrp .qrcard h2{font-size:2rem}body.qrp .qrcard .qrsub{font-size:1.3rem}
+}
+/* halaman QR: muat satu skrin */
+body.qrp #app{padding:14px 14px 14px!important;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:center;align-items:center}
+body.qrp .lanterns,body.qrp #moon{display:none}
+body.qrp .hero{margin:0 0 8px!important;padding:0!important}
+body.qrp .hero .title{font-size:clamp(1.9rem,6vh,3rem)!important;margin:0!important}
+body.qrp .hero .sub{margin:2px 0 6px!important}
+body.qrp .hero .org{margin:0!important}
+body.qrp .hero .oline{display:none}
+body.qrp .hero .org1,body.qrp .hero .org2{margin:2px 0!important}
+body.qrp .hero .info{display:none}
+body.qrp .qrcard{padding:16px 22px 18px!important}
+body.qrp .qrcard h2{font-size:clamp(1.1rem,3.4vh,1.5rem)!important}
+body.qrp .qrcard .qrsub{font-size:clamp(.85rem,2.4vh,1.05rem);margin:0 0 6px}
+body.qrp .qrbox{margin:4px 0 0;padding:10px}
+body.qrp .qrbox svg{width:min(62vw,40vh,300px)!important}
+body.qrp .qrbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+@media print{body.qrp .hero .info{display:grid!important}body.qrp .hero .oline{display:flex!important}body.qrp .hero .title{font-size:4rem!important}body.qrp .hero .org1{font-size:1.7rem!important}body.qrp .qrcard{padding:10mm 14mm!important}}
 }
 
 /* dashboard */
@@ -252,6 +270,18 @@ body.fit label{margin:8px 0 4px!important}
 body.fit input,body.fit select{padding:11px 14px!important}
 body.fit .btn.block{margin-top:12px!important;padding:12px!important}
 }
+body.cmp #app{padding-top:clamp(70px,11vh,110px)!important}
+body.cmp .lanterns,body.cmp #moon{transform:scale(.6);transform-origin:top center;opacity:.8}
+body.cmp .hero{margin-bottom:12px!important}
+body.cmp .hero .title{font-size:clamp(1.8rem,5.5vw,2.6rem)!important;margin:0!important}
+body.cmp .hero .sub{font-size:.7rem!important;margin:2px 0 6px!important}
+body.cmp .hero .oline{margin:6px auto!important}
+body.cmp .hero .org1{font-size:clamp(.8rem,3.2vw,1rem)!important;margin:4px 0 2px!important}
+body.cmp .hero .org2{font-size:.85rem!important;margin-bottom:4px!important}
+body.cmp .tiles{display:grid!important;grid-template-columns:repeat(2,1fr)}
+@media(min-width:720px){body.cmp .tiles{grid-template-columns:repeat(4,1fr)!important}}
+body.cmp .tile{padding:10px}
+body.cmp .hero .info{gap:8px!important;margin-top:8px!important;zoom:.8}
 </style>
 </head>
 <body>
@@ -3157,15 +3187,15 @@ async function pgUndi() {
 
 /* ============ HALAMAN: POSTER QR ============ */
 async function pgPoster(kind) {
-  document.body.classList.add('wide'); buildBg(false);
+  document.body.classList.add('qrp'); buildBg(false);
   const isV = kind === 'undi';
   const T = pageUrl(isV ? 'undi' : 'daftar');
   const card = isV
     ? `<h2>Undi Best Dress</h2><p class="qrsub">Imbas untuk mengundi<br><b>Raja Malam</b> &amp; <b>Permaisuri Malam</b></p>`
     : `<h2>Daftar Kehadiran</h2><p class="qrsub">Imbas untuk dapat<br><b>No. Cabutan Bertuah</b></p>`;
   app.innerHTML = `${hero()}
-   <div style="max-width:440px;margin:0 auto"><section class="card qrcard fadein">${card}<div class="qrbox" id="q1"></div><div class="qrfoot">${isV ? 'Terima kasih' : 'Selamat datang'}</div></section></div>
-  <div class="center noprint" style="margin-top:20px"><button class="btn" onclick="window.print()">🖨 Cetak</button></div>${navLinks(isV ? 'posterundi' : 'poster')}`;
+   <div style="max-width:440px;margin:0 auto"><section class="card qrcard fadein">${card}<div class="qrbox" id="q1"></div></section></div>
+  <div class="qrbtns noprint"><a class="btn ghost sm" href="${pageUrl('dashboard')}">← Dashboard</a><button class="btn sm" onclick="window.print()">🖨 Cetak</button></div>`;
   const mk = (id, t) => { try { if (!window.qrcode) (0, eval)($('#qrlib').textContent); const q = qrcode(0, 'M'); q.addData(t); q.make(); $(id).innerHTML = q.createSvgTag({ cellSize: 6, margin: 0, scalable: true }); const sv = $(id + ' svg'); sv.removeAttribute('width'); sv.removeAttribute('height'); sv.style.display = 'block'; sv.querySelectorAll('rect,path').forEach(n => { if (n.getAttribute('fill') === '#000000') n.setAttribute('fill', '#1a0f3d'); if (n.getAttribute('fill') === '#ffffff') n.setAttribute('fill', '#fff6dd'); }); } catch (e) { $(id).innerHTML = '<div class="small" style="color:#2a1659;width:240px">Gagal menjana QR: ' + esc(e.message) + '</div>'; } };
   mk('#q1', T);
   if (location.protocol === 'file:') app.insertAdjacentHTML('beforeend', '<div class="msg err">Anda membuka fail secara tempatan. Muat naik ke GitHub Pages dahulu supaya QR menunjuk ke alamat web sebenar.</div>');
@@ -3173,6 +3203,7 @@ async function pgPoster(kind) {
 
 /* ============ HALAMAN: DASHBOARD ============ */
 async function pgDashboard() {
+  document.body.classList.add('cmp');
   document.body.classList.add('wide'); buildBg(false);
   await needAdmin();
   const blank = { peserta: [], cabutan: [], undiCount: 0, config: defaultConfig(), byUnit: {}, next: 0 };
@@ -3331,6 +3362,7 @@ async function pgCabutan() {
 
 /* ============ HALAMAN: BEST DRESS (PENTAS) ============ */
 async function pgBest() {
+  document.body.classList.add('cmp');
   document.body.classList.add('wide'); buildBg(false);
   await needAdmin();
   let R; try { R = JSON.parse(SS.get('bestR') || 'null'); } catch (e) { R = null; }
