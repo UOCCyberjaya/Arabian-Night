@@ -3378,7 +3378,10 @@ async function pgDashboard() {
       const N = ['Ahmad Faiz', 'Siti Nurhaliza', 'Muhammad Hafiz', 'Nur Aisyah', 'Mohd Azlan', 'Farah Najwa', 'Khairul Anuar', 'Nurul Huda', 'Zulkifli Hassan', 'Aina Sofea'], B = ['bin Abdullah', 'binti Ismail', 'bin Yusof', 'binti Hamid', 'bin Rahman'];
       sd.disabled = true;
       const cur = d.peserta.length;
-      for (let i = cur; i < Math.min(50, d.config.total); i++) { sd.textContent = `Mengisi… ${i + 1}/50`; await api('register', { nama: N[i % 10] + ' ' + B[(i * 3) % 5] + ' ' + String.fromCharCode(65 + (i % 26)) + (i >= 26 ? String.fromCharCode(65 + (i % 26)) : ''), unit: UNITS[i % 9], jantina: i % 2 ? 'P' : 'L' }); }
+      for (let i = cur; i < Math.min(50, d.config.total); i++) { sd.textContent = `Mengisi… ${i + 1}/50`; const c = document.createElement('canvas'); c.width = c.height = 160; const x = c.getContext('2d');
+        x.fillStyle = `hsl(${(i * 37) % 360},55%,52%)`; x.fillRect(0, 0, 160, 160); x.fillStyle = 'rgba(255,255,255,.88)'; x.beginPath(); x.arc(80, 62, 30, 0, 7); x.fill(); x.beginPath(); x.ellipse(80, 150, 52, 44, 0, 0, 7); x.fill();
+        const r = await api('register', { nama: N[i % 10] + ' ' + B[(i * 3) % 5] + ' ' + String.fromCharCode(65 + (i % 26)) + (i >= 26 ? String.fromCharCode(65 + (i % 26)) : ''), unit: UNITS[i % 9], jantina: i % 2 ? 'P' : 'L', foto: c.toDataURL('image/jpeg', .7) });
+        if (!r.ok && r.code !== 'dup') { alert(r.error || 'Gagal mengisi data contoh'); break; } }
       await refresh(); sd.disabled = false; sd.textContent = '🧪 Isi 50 peserta contoh';
     };
   }
